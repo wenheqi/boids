@@ -30,9 +30,5 @@
   <ItemGroup>
     <None Include="res\shaders\basicShader.fs" />
     <None Include="res\shaders\basicShader.vs" />
-    <None Include="src\basicShader.vs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="src\test.txt" />
   </ItemGroup>
 </Project>

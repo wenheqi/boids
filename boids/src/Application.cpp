@@ -1,6 +1,7 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 #include "Shader/Shader.h"
 
 // The program by default runs in the project folder, hence we should use the relative path
