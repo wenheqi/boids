@@ -8,6 +8,7 @@
 class Shader
 {
 public:
+	GLuint m_program;
 	Shader();
 	virtual ~Shader();
 	void Bind();
@@ -20,7 +21,6 @@ private:
 	static const unsigned int NUM_SHADERS = 2;
 	static const unsigned int IDX_VERT_SHADER = 0;
 	static const unsigned int IDX_FRAG_SHADER = 1;
-	GLuint m_program;
 	GLuint m_shaders[NUM_SHADERS];
 	Shader(const Shader& other) {}
 	void operator=(const Shader& other) {}
