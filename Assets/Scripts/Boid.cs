@@ -22,7 +22,7 @@ public class Boid : MonoBehaviour
     /*
      * Move based on Craig Reynolds' three rules
      */
-    public void MoveInFlock(List<Transform> flock)
+    public void MoveInFlock(List<BoidProperty> flock)
     {
         Vector3 steeringDir;
         Vector3 steeringForce;
@@ -57,12 +57,12 @@ public class Boid : MonoBehaviour
      * is stronger and the flight path will be deflected somewhat toward the 
      * local flock center.
      */
-    private Vector3 Cohere(List<Transform> flockmates)
+    private Vector3 Cohere(List<BoidProperty> flockmates)
     {
         Vector3 steeringDir;
         Vector3 centroid = Vector3.zero;
 
-        foreach(Transform flockmate in flockmates)
+        foreach(BoidProperty flockmate in flockmates)
         {
             // exclude boid itself from blockmates
             if (flockmate.position != transform.position &&
