@@ -4,20 +4,28 @@ using UnityEngine;
 
 public class Boid : MonoBehaviour
 {
+    private static float MAX_SPEED = 2f;
     [SerializeField]
-    // world space velocity
-    Vector3 velocity;
+    private Vector3 velocity; // world space velocity
+
     // Start is called before the first frame update
     void Start()
     {
-        velocity = new Vector3(0f, 0.2f, 0.2f);
+        velocity = Vector3.ClampMagnitude(
+                new Vector3(
+                    Random.Range(-MAX_SPEED, MAX_SPEED),
+                    Random.Range(-MAX_SPEED, MAX_SPEED),
+                    Random.Range(-MAX_SPEED, MAX_SPEED)
+                ),
+                MAX_SPEED
+            );
+        transform.rotation = Quaternion.LookRotation(velocity);
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Translate work on local axis
-        transform.Translate(transform.InverseTransformDirection(velocity) * Time.deltaTime, Space.Self);
+        transform.Translate(velocity * Time.deltaTime, Space.World);
         transform.rotation = Quaternion.LookRotation(velocity);
     }
 }
