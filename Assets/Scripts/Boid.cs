@@ -4,18 +4,26 @@ using UnityEngine;
 
 public class Boid : MonoBehaviour
 {
-    private static float MAX_SPEED = 1f;
-    private static float MAX_FORCE = 2f;
+    private static float MAX_SPEED = 10f;
+    private static float MAX_FORCE = 7f;
     [SerializeField]
     private Vector3 velocity; // world space velocity
     private float mass;
     private float perceptionDist;
+    private float separationDist;
+    private float weightCohesion;
+    private float weightSeparation;
 
     // Start is called before the first frame update
     void Start()
     {
         mass = 1f;
-        perceptionDist = 3;
+        perceptionDist = 3f;
+        // Note: if separation distance is too small, two fish will kiss
+        // each other repeatedly
+        separationDist = 1.5f;
+        weightCohesion = 0.2f;
+        weightSeparation = 0.8f;
         velocity = Random.onUnitSphere * MAX_SPEED;
         if (velocity != Vector3.zero)
         {
@@ -42,7 +50,8 @@ public class Boid : MonoBehaviour
     {
         Vector3 steeringVelocity = Vector3.zero;
 
-        steeringVelocity += Cohere(flock);
+        steeringVelocity += weightCohesion * Cohere(flock);
+        steeringVelocity += weightSeparation * Separate(flock);
 
         Vector3 steeringDir = steeringVelocity;
         steeringDir.Normalize();
@@ -114,6 +123,42 @@ public class Boid : MonoBehaviour
             steering = desiredVelocity - velocity;
         }
         
+        return steering;
+    }
+
+    private Vector3 Separate(List<BoidProperty> flockmates)
+    {
+        Vector3 steering = Vector3.zero;
+        Vector3 flee = Vector3.zero;
+        int numFlockmates = 0;
+
+        foreach (BoidProperty flockmate in flockmates)
+        {
+            // exclude boid itself from blockmates
+            if (flockmate.position != transform.position &&
+                Vector3.Distance(this.transform.position,
+                flockmate.position) <= perceptionDist)
+            {
+                if (Vector3.Distance(transform.position, flockmate.position) <
+                    separationDist)
+                {
+                    // calculate how far and in what direction the boid wants to
+                    // flee
+                    Vector3 runaway = transform.position - flockmate.position;
+                    runaway.Normalize();
+                    runaway *= 1 / separationDist;
+                    flee += runaway;
+                    numFlockmates++;
+                }
+            }
+        }
+
+        if (numFlockmates > 0)
+        {
+            flee.Normalize();
+            steering = flee * MAX_SPEED - velocity;
+        }
+
         return steering;
     }
 }
