@@ -13,6 +13,7 @@ public class Boid : MonoBehaviour
     private float separationDist;
     private float weightCohesion;
     private float weightSeparation;
+    private float weightAlignment;
 
     // Start is called before the first frame update
     void Start()
@@ -22,13 +23,19 @@ public class Boid : MonoBehaviour
         // Note: if separation distance is too small, two fish will kiss
         // each other repeatedly
         separationDist = 1.5f;
-        weightCohesion = 0.2f;
-        weightSeparation = 0.8f;
+        weightCohesion = 0.3f;
+        weightSeparation = 0.4f;
+        weightAlignment = 0.3f;
         velocity = Random.onUnitSphere * MAX_SPEED;
         if (velocity != Vector3.zero)
         {
             transform.rotation = Quaternion.LookRotation(velocity);
         }
+    }
+
+    public Vector3 GetVelocity()
+    {
+        return velocity;
     }
 
     /*
@@ -52,6 +59,7 @@ public class Boid : MonoBehaviour
 
         steeringVelocity += weightCohesion * Cohere(flock);
         steeringVelocity += weightSeparation * Separate(flock);
+        steeringVelocity += weightAlignment * Align(flock);
 
         Vector3 steeringDir = steeringVelocity;
         steeringDir.Normalize();
@@ -160,5 +168,22 @@ public class Boid : MonoBehaviour
         }
 
         return steering;
+    }
+
+    private Vector3 Align(List<BoidProperty> flockmates)
+    {
+        Vector3 desiredVelocity = Vector3.zero;
+
+        foreach (BoidProperty flockmate in flockmates)
+        {
+            // NOT exclude boid itself from blockmates
+            if (Vector3.Distance(this.transform.position,
+                flockmate.position) <= perceptionDist)
+            {
+                desiredVelocity += flockmate.velocity;
+            }
+        }
+
+        return desiredVelocity - velocity;
     }
 }
