@@ -10,7 +10,7 @@ public class Flock : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 5; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
@@ -28,6 +28,12 @@ public class Flock : MonoBehaviour
         for (int i = 0; i < boids.Count; i++)
         {
             Boid closestBoid = getClosestBoid(boids[i]);
+            Vector3 averageVelocity = (closestBoid.velocity + boids[i].velocity) * 0.5f;
+            //Debug.Log("Source boid: " + boids[i].velocity + " Closest boid: " + closestBoid.velocity);
+
+            // change boid's velocity based on the average of its velocity and the nearest boid's velocity
+            boids[i].velocity = averageVelocity;
+            
         }
     }
 
@@ -38,7 +44,7 @@ public class Flock : MonoBehaviour
         for (int i = 0; i < boids.Count; i++)
         {
             float dist = Vector3.Distance(boids[i].transform.position, sourceBoid.transform.position);
-            if (dist < closestDistance)
+            if (dist < closestDistance && boids[i] != sourceBoid)
             {
                 closestDistance = dist;
                 closestBoid = boids[i];

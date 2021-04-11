@@ -6,7 +6,7 @@ public class Boid : MonoBehaviour
 {
     private static float MAX_SPEED = 2f;
     [SerializeField]
-    private Vector3 velocity; // world space velocity
+    public Vector3 velocity; // world space velocity
 
     // Start is called before the first frame update
     void Start()
