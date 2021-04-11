@@ -19,6 +19,8 @@ public class Flock : MonoBehaviour
                     Random.Range(-5f, 5f)
                 );
             boids.Add(Instantiate(boid, position, Random.rotation));
+            Vector3 sourceBoidPosition = boids[i].transform.position;
+            //Collider[] collider = Physics.OverlapSphere(sourceBoidPosition, boidDetectionRadius);
         }
     }
 
@@ -27,9 +29,18 @@ public class Flock : MonoBehaviour
     {
         for (int i = 0; i < boids.Count; i++)
         {
-            Boid closestBoid = getClosestBoid(boids[i]);
+            //boids.Sort(byDist);
+            Boid closestBoid = boids[i];
+            if (boids[i].nearbyBoids.Count > 0 && boids[i].nearbyBoids != null)
+            {
+                GameObject closestObj = boids[i].nearbyBoids[0];
+                closestBoid = closestObj.GetComponent<Boid>();
+            }
+
             Vector3 averageVelocity = (closestBoid.velocity + boids[i].velocity) * 0.5f;
             //Debug.Log("Source boid: " + boids[i].velocity + " Closest boid: " + closestBoid.velocity);
+
+            // Reynolds pg 28 "Flock centering makes a boid want to be near the center of the flock. Because each boid has a localized perception of the world, center of the flock actually means nearby flockmates.
 
             // change boid's velocity based on the average of its velocity and the nearest boid's velocity
             boids[i].velocity = averageVelocity;
