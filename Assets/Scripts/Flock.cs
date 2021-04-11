@@ -25,16 +25,19 @@ public class Flock : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        for (int i = 0; i < boids.Count; i++)
+        {
+            Boid closestBoid = getClosestBoid(boids[i]);
+        }
     }
 
-    public Boid getClosestBoid()
+    public Boid getClosestBoid(Boid sourceBoid)
     {
         float closestDistance = 500;
         Boid closestBoid = null;
         for (int i = 0; i < boids.Count; i++)
         {
-            float dist = Vector3.Distance(boids[i].transform.position, this.transform.position);
+            float dist = Vector3.Distance(boids[i].transform.position, sourceBoid.transform.position);
             if (dist < closestDistance)
             {
                 closestDistance = dist;
