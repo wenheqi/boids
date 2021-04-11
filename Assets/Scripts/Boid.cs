@@ -5,7 +5,7 @@ using UnityEngine;
 public class Boid : MonoBehaviour
 {
     private static float MAX_SPEED = 10f;
-    private static float MAX_FORCE = 7f;
+    private static float MAX_FORCE = 70f;
     [SerializeField]
     private Vector3 velocity; // world space velocity
     private float mass;
