@@ -10,13 +10,13 @@ public class Flock : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < 100; i++)
+        for (int i = 0; i < 200; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
-                    Random.Range(-5f, 5f),
-                    Random.Range(-5f, 5f),
-                    Random.Range(-5f, 5f)
+                    Random.Range(0.0f, 50.0f),
+                    Random.Range(0.0f, 50.0f),
+                    Random.Range(0.0f, 50.0f)
                 );
             boids.Add(Instantiate(boid, position, Random.rotation));
         }

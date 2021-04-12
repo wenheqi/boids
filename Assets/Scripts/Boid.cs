@@ -4,28 +4,34 @@ using UnityEngine;
 
 public class Boid : MonoBehaviour
 {
-    private static float MAX_SPEED = 10f;
-    private static float MAX_FORCE = 70f;
+    private static float MAX_SPEED = 9f;
+    private static float MAX_FORCE = 27f;
     [SerializeField]
     private Vector3 velocity; // world space velocity
     private float mass;
-    private float perceptionDist;
+
+    private float alignmentDist;
+    private float cohesionDist;
     private float separationDist;
-    private float weightCohesion;
-    private float weightSeparation;
-    private float weightAlignment;
+
+    private float alignmentForceCoef;
+    private float cohesionForceCoef;
+    private float separationForceCoef;
 
     // Start is called before the first frame update
     void Start()
     {
         mass = 1f;
-        perceptionDist = 3f;
+        alignmentDist = 7.5f;
+        cohesionDist = 9.0f;
         // Note: if separation distance is too small, two fish will kiss
         // each other repeatedly
-        separationDist = 1.5f;
-        weightCohesion = 0.3f;
-        weightSeparation = 0.4f;
-        weightAlignment = 0.3f;
+        separationDist = 5.0f;
+
+        alignmentForceCoef = 8.0f;
+        cohesionForceCoef = 8.0f;
+        separationForceCoef = 12.0f;
+
         velocity = Random.onUnitSphere * MAX_SPEED;
         if (velocity != Vector3.zero)
         {
@@ -55,26 +61,43 @@ public class Boid : MonoBehaviour
      */
     public void MoveInFlock(List<BoidProperty> flock)
     {
+        // steering velocity of alignemnt, cohesion and separation
         Vector3 steeringVelocity = Vector3.zero;
+        // steering force of alignemnt, cohesion and separation
+        Vector3 steeringForce = Vector3.zero;
 
-        steeringVelocity += weightCohesion * Cohere(flock);
-        steeringVelocity += weightSeparation * Separate(flock);
-        steeringVelocity += weightAlignment * Align(flock);
+        // desired alignment steering velocity/direction
+        Vector3 alignmentV = Align(flock);
+        Vector3 alignmentD = alignmentV;
+        alignmentD.Normalize();
 
-        Vector3 steeringDir = steeringVelocity;
-        steeringDir.Normalize();
+        // desired cohesion steering velocity/direction
+        Vector3 cohesionV = Cohere(flock);
+        Vector3 cohesionD = cohesionV;
+        cohesionD.Normalize();
+
+        // desired separation steering velocity/direction
+        Vector3 separationV = Separate(flock);
+        Vector3 separationD = separationV;
+        separationD.Normalize();
+
+        steeringVelocity += alignmentV;
+        steeringForce += alignmentForceCoef * alignmentD;
+        steeringVelocity += cohesionV;
+        steeringForce += cohesionForceCoef * cohesionD;
+        steeringVelocity += separationV;
+        steeringForce += separationForceCoef * separationD;
+
         // steering_force = truncate (steering_direction, max_force)
-        Vector3 steeringForce = steeringDir * MAX_FORCE;
+        steeringForce = Vector3.ClampMagnitude(steeringForce, MAX_FORCE);
+        steeringVelocity = Vector3.ClampMagnitude(steeringVelocity, MAX_SPEED);
         // acceleration = steering_force / mass
         Vector3 acceleration = steeringForce / mass;
+        // avoid overshooting
+        Vector3 deltaVelocity = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringVelocity.magnitude);
         // velocity = truncate(velocity + acceleration, max_speed)
-        Vector3 deltaVelocity = acceleration * Time.deltaTime;
-        // considering the boid may not need max_speed to steer, take the min
-        // velocity
-        velocity = Vector3.ClampMagnitude(
-            velocity +
-            (deltaVelocity.sqrMagnitude <= steeringVelocity.sqrMagnitude ?
-             deltaVelocity : steeringVelocity), MAX_SPEED);
+        velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, MAX_SPEED);
 
         Move();
     }
@@ -102,7 +125,7 @@ public class Boid : MonoBehaviour
     private Vector3 Cohere(List<BoidProperty> flockmates)
     {
         Vector3 steering = Vector3.zero;
-        Vector3 centroid = Vector3.zero;
+        Vector3 avgPosition = Vector3.zero;
         int numFlockmates = 0;
 
         foreach(BoidProperty flockmate in flockmates)
@@ -110,21 +133,21 @@ public class Boid : MonoBehaviour
             // exclude boid itself from blockmates
             if (flockmate.position != transform.position &&
                 Vector3.Distance(this.transform.position,
-                flockmate.position) <= perceptionDist)
+                flockmate.position) <= cohesionDist)
             {
                 // positon is in world space
-                centroid += flockmate.position;
+                avgPosition += flockmate.position;
                 numFlockmates++;
             }
         }
 
         if (numFlockmates > 0)
         {
-            centroid /= numFlockmates;
+            avgPosition /= numFlockmates;
             // desired_velocity = normalize (position - target) * max_speed
             // Note: the paper seems to be wrong about the vector calculation
             // should be target - position instead of position - target
-            Vector3 desiredVelocity = centroid - transform.position;
+            Vector3 desiredVelocity = avgPosition - transform.position;
             desiredVelocity.Normalize();
             desiredVelocity *= MAX_SPEED;
             // steering = desired_velocity - velocity
@@ -145,17 +168,16 @@ public class Boid : MonoBehaviour
             // exclude boid itself from blockmates
             if (flockmate.position != transform.position &&
                 Vector3.Distance(this.transform.position,
-                flockmate.position) <= perceptionDist)
+                flockmate.position) <= separationDist)
             {
                 if (Vector3.Distance(transform.position, flockmate.position) <
                     separationDist)
                 {
                     // calculate how far and in what direction the boid wants to
                     // flee
-                    Vector3 runaway = transform.position - flockmate.position;
-                    runaway.Normalize();
-                    runaway *= 1 / separationDist;
-                    flee += runaway;
+                    Vector3 offset = transform.position - flockmate.position;
+                    offset /= offset.sqrMagnitude;
+                    flee += offset;
                     numFlockmates++;
                 }
             }
@@ -163,6 +185,7 @@ public class Boid : MonoBehaviour
 
         if (numFlockmates > 0)
         {
+            flee /= numFlockmates;
             flee.Normalize();
             steering = flee * MAX_SPEED - velocity;
         }
@@ -170,20 +193,58 @@ public class Boid : MonoBehaviour
         return steering;
     }
 
+    /*
+     * Alignment: steer towards the average heading of local flockmates
+     * 
+     * Reference:
+     * Reynolds, C. W. (1999) Steering Behaviors For Autonomous Characters, in 
+     * the proceedings of Game Developers Conference 1999 held in San Jose, 
+     * California. Miller Freeman Game Group, San Francisco, California. Pages 
+     * 763-782.
+     * 
+     * Note: in Craig's implementation of alignment, cohesion and separation in
+     * OpenSteer library, the return of his functions is actually a normalized
+     * steering direction vector. After get the direction vector, he multiplies
+     * each vector with a coefficient and sum them to get a steering force.
+     * Finally he uses this force (truncated if necessary) to calculate the new
+     * acceleration, velocity and position.
+     * I metion this mainly because in the paper above, the term used is 
+     * "steering vector" and in seek behavior it was explicitly mentioned that 
+     * "The steering vector is the difference between this desired velocity and 
+     * the character’s current velocity", which looks really confusing to me.
+     * 
+     * Parameters:
+     *  List<BoidProperty> flockmates: a list of properties of all boids 
+     *  currently in the space
+     * Return:
+     *  the difference between this desired velocity and the character’s current
+     *  velocity
+     */
     private Vector3 Align(List<BoidProperty> flockmates)
     {
-        Vector3 desiredVelocity = Vector3.zero;
+        Vector3 steering = Vector3.zero;
+        Vector3 avgForward = Vector3.zero;
+        int numFlockmates = 0;
 
         foreach (BoidProperty flockmate in flockmates)
         {
-            // NOT exclude boid itself from blockmates
-            if (Vector3.Distance(this.transform.position,
-                flockmate.position) <= perceptionDist)
+            // exclude boid itself from flockmates
+            if (transform.position != flockmate.position &&
+                Vector3.Distance(this.transform.position,
+                flockmate.position) <= alignmentDist)
             {
-                desiredVelocity += flockmate.velocity;
+                avgForward += flockmate.forward;
+                numFlockmates++;
             }
         }
 
-        return desiredVelocity - velocity;
+        if (numFlockmates > 0)
+        {
+            avgForward /= numFlockmates;
+            avgForward.Normalize();
+            steering = avgForward * MAX_SPEED - velocity;
+        }
+
+        return steering;
     }
 }
