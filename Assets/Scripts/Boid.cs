@@ -17,6 +17,10 @@ public class Boid : MonoBehaviour
     private float alignmentForceCoef;
     private float cohesionForceCoef;
     private float separationForceCoef;
+    public List<GameObject> nearbyBoids; // list of other boids that are within boidDetectionRadius
+    //SphereCollider boidCollider;
+    private float boidDetectionRadius = 2.5f;
+    public Rigidbody rb;
 
     // Start is called before the first frame update
     void Start()
@@ -37,6 +41,22 @@ public class Boid : MonoBehaviour
         {
             transform.rotation = Quaternion.LookRotation(velocity);
         }
+
+        this.gameObject.AddComponent<Rigidbody>(); // rigidbody is needed for collisions
+        rb = GetComponent<Rigidbody>();
+        rb.isKinematic = true; // isKinematic set to true ignores physics when collisions happen
+
+        // a second collision sphere can be made is needed
+        //boidCollider = GetComponent<SphereCollider>();
+        //this.boidCollider = this.gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
+        //this.boidCollider.center = this.transform.position;
+        //this.boidCollider.radius = boidDetectionRadius;
+        //this.boidCollider.isTrigger = true;
+
+        SphereCollider a = GetComponent<SphereCollider>();
+        a.isTrigger = true;
+        a.center = this.transform.position;
+        a.radius = boidDetectionRadius;
     }
 
     public Vector3 GetVelocity()
@@ -246,5 +266,22 @@ public class Boid : MonoBehaviour
         }
 
         return steering;
+    }
+
+    private void OnTriggerEnter(Collider collision)
+    {
+        nearbyBoids.Add(collision.gameObject);
+    }
+
+    private void OnTriggerExit(Collider collision)
+    {
+        nearbyBoids.Remove(collision.gameObject);
+    }
+
+    private int byDist(GameObject a, GameObject b)
+    {
+        float distToA = Vector3.Distance(transform.position, a.transform.position);
+        float distToB = Vector3.Distance(transform.position, b.transform.position);
+        return distToA.CompareTo(distToB);
     }
 }

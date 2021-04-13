@@ -38,4 +38,20 @@ public class Flock : MonoBehaviour
             b.MoveInFlock(transformList);
         }
     }
+
+    public Boid getClosestBoid(Boid sourceBoid)
+    {
+        float closestDistance = 500;
+        Boid closestBoid = null;
+        for (int i = 0; i < boids.Count; i++)
+        {
+            float dist = Vector3.Distance(boids[i].transform.position, sourceBoid.transform.position);
+            if (dist < closestDistance && boids[i] != sourceBoid)
+            {
+                closestDistance = dist;
+                closestBoid = boids[i];
+            }
+        }
+        return closestBoid;
+    }
 }
