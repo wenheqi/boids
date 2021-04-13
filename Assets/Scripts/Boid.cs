@@ -19,7 +19,7 @@ public class Boid : MonoBehaviour
     private float separationForceCoef;
     public List<GameObject> nearbyBoids; // list of other boids that are within boidDetectionRadius
     //SphereCollider boidCollider;
-    private float boidDetectionRadius = 2.5f;
+    private float boidDetectionRadius = 20.0f;
     public Rigidbody rb;
 
     // Start is called before the first frame update
@@ -79,7 +79,7 @@ public class Boid : MonoBehaviour
     /*
      * Move based on Craig Reynolds' three rules
      */
-    public void MoveInFlock(List<BoidProperty> flock)
+    public void MoveInFlock(List<GameObject> flock)
     {
         // steering velocity of alignemnt, cohesion and separation
         Vector3 steeringVelocity = Vector3.zero;
@@ -142,21 +142,22 @@ public class Boid : MonoBehaviour
      *  the difference between desired velocity and the object’s current 
      *  velocity
      */
-    private Vector3 Cohere(List<BoidProperty> flockmates)
+    private Vector3 Cohere(List<GameObject> flockmates)
     {
         Vector3 steering = Vector3.zero;
         Vector3 avgPosition = Vector3.zero;
         int numFlockmates = 0;
 
-        foreach(BoidProperty flockmate in flockmates)
+        foreach(GameObject flockmate in flockmates)
         {
+
             // exclude boid itself from blockmates
-            if (flockmate.position != transform.position &&
+            if (flockmate.transform.position != transform.position &&
                 Vector3.Distance(this.transform.position,
-                flockmate.position) <= cohesionDist)
+                flockmate.transform.position) <= cohesionDist)
             {
                 // positon is in world space
-                avgPosition += flockmate.position;
+                avgPosition += flockmate.transform.position;
                 numFlockmates++;
             }
         }
@@ -177,25 +178,25 @@ public class Boid : MonoBehaviour
         return steering;
     }
 
-    private Vector3 Separate(List<BoidProperty> flockmates)
+    private Vector3 Separate(List<GameObject> flockmates)
     {
         Vector3 steering = Vector3.zero;
         Vector3 flee = Vector3.zero;
         int numFlockmates = 0;
 
-        foreach (BoidProperty flockmate in flockmates)
+        foreach (GameObject flockmate in flockmates)
         {
             // exclude boid itself from blockmates
-            if (flockmate.position != transform.position &&
+            if (flockmate.transform.position != transform.position &&
                 Vector3.Distance(this.transform.position,
-                flockmate.position) <= separationDist)
+                flockmate.transform.position) <= separationDist)
             {
-                if (Vector3.Distance(transform.position, flockmate.position) <
+                if (Vector3.Distance(transform.position, flockmate.transform.position) <
                     separationDist)
                 {
                     // calculate how far and in what direction the boid wants to
                     // flee
-                    Vector3 offset = transform.position - flockmate.position;
+                    Vector3 offset = transform.position - flockmate.transform.position;
                     offset /= offset.sqrMagnitude;
                     flee += offset;
                     numFlockmates++;
@@ -240,20 +241,20 @@ public class Boid : MonoBehaviour
      *  the difference between this desired velocity and the character’s current
      *  velocity
      */
-    private Vector3 Align(List<BoidProperty> flockmates)
+    private Vector3 Align(List<GameObject> flockmates)
     {
         Vector3 steering = Vector3.zero;
         Vector3 avgForward = Vector3.zero;
         int numFlockmates = 0;
 
-        foreach (BoidProperty flockmate in flockmates)
+        foreach (GameObject flockmate in flockmates)
         {
             // exclude boid itself from flockmates
-            if (transform.position != flockmate.position &&
+            if (transform.position != flockmate.transform.position &&
                 Vector3.Distance(this.transform.position,
-                flockmate.position) <= alignmentDist)
+                flockmate.transform.position) <= alignmentDist)
             {
-                avgForward += flockmate.forward;
+                avgForward += flockmate.transform.forward;
                 numFlockmates++;
             }
         }
@@ -278,10 +279,12 @@ public class Boid : MonoBehaviour
         nearbyBoids.Remove(collision.gameObject);
     }
 
+    /*
     private int byDist(GameObject a, GameObject b)
     {
         float distToA = Vector3.Distance(transform.position, a.transform.position);
         float distToB = Vector3.Distance(transform.position, b.transform.position);
         return distToA.CompareTo(distToB);
     }
+    */
 }

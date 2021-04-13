@@ -35,7 +35,7 @@ public class Flock : MonoBehaviour
 
         foreach(Boid b in boids)
         {
-            b.MoveInFlock(transformList);
+            b.MoveInFlock(b.nearbyBoids);
         }
     }
 

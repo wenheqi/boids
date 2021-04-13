@@ -8,6 +8,7 @@ public class BoidProperty
     public Quaternion rotation;
     public Vector3 velocity;
     public Vector3 forward;
+    public List<GameObject> nearbyBoids;
 
     public BoidProperty(Boid boid)
     {
@@ -15,5 +16,6 @@ public class BoidProperty
         rotation = boid.transform.rotation;
         velocity = boid.GetVelocity();
         forward = boid.transform.forward;
+        nearbyBoids = boid.nearbyBoids;
     }
 }
