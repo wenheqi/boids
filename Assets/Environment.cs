@@ -13,6 +13,9 @@ public class Environment : MonoBehaviour
         wall = GameObject.CreatePrimitive(PrimitiveType.Cube);
         wall.transform.position = new Vector3(0, 0, -50);
         wall.transform.localScale = new Vector3(200, 200, 25);
+        wall.tag = "static";
+        wall.AddComponent<Rigidbody>();
+        wall.GetComponent<Rigidbody>().isKinematic = true;
     }
 
     // Start is called before the first frame update

@@ -279,9 +279,10 @@ public class Boid : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
-        if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.name == "static")
+        if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.tag == "static")
         {
             // detected avoidance collision
+            Debug.Log("detected wall collision");
         }
         nearbyBoids.Add(collision.gameObject);
     }
