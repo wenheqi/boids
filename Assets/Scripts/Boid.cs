@@ -101,6 +101,33 @@ public class Boid : MonoBehaviour
     }
 
     /*
+     * Returns the desired steering velocity
+     */
+    private Vector3 SteerToPursuit(Boid target)
+    {
+        Vector3 predictedPosition = target.transform.position +
+            target.GetVelocity() * Time.deltaTime;
+        Vector3 desiredD = predictedPosition - transform.position;
+        desiredD.Normalize();
+        Vector3 desiredV = desiredD * MAX_SPEED;
+        return desiredV - velocity;
+    }
+
+    public void Pursuit(Boid target)
+    {
+        Vector3 steeringV = SteerToPursuit(target); // steering velocity
+        Vector3 steeringD = steeringV; // steering direction
+        steeringD.Normalize();
+        // big coef makes it easier to steer to target
+        float seekForceCoef = 5.0f;
+        Vector3 acceleration = seekForceCoef * steeringD / mass;
+        Vector3 deltaV = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringV.magnitude);
+        velocity = Vector3.ClampMagnitude(velocity + deltaV, MAX_SPEED);
+        Move();
+    }
+
+    /*
      * Move forward based on current velocity
      */
     public void Move()
