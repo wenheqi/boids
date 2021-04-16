@@ -32,9 +32,15 @@ public class Boid : MonoBehaviour
         cohesionForceCoef = 8.0f;
         separationForceCoef = 12.0f;
 
-        velocity = Random.onUnitSphere * MAX_SPEED;
-        if (velocity != Vector3.zero)
+        // initialize velocity with initial orientation if set
+        if (transform.forward != Vector3.zero)
         {
+            velocity = transform.forward * MAX_SPEED;
+        }
+        // otherwise generate a random orientation and speed
+        else
+        {
+            velocity = Random.onUnitSphere * MAX_SPEED;
             transform.rotation = Quaternion.LookRotation(velocity);
         }
     }
@@ -63,6 +69,31 @@ public class Boid : MonoBehaviour
         // big coef makes it easier to steer to target
         float seekForceCoef = 5.0f;
         Vector3 acceleration = seekForceCoef * steeringD / mass;
+        Vector3 deltaV = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringV.magnitude);
+        velocity = Vector3.ClampMagnitude(velocity + deltaV, MAX_SPEED);
+        Move();
+    }
+
+    /*
+     * Returns the desired steering velocity so that the boid's velocity is
+     * radially aligned away from the target.
+     */
+    private Vector3 SteerToFlee(GameObject target)
+    {
+        Vector3 desiredD = transform.position - target.transform.position;
+        desiredD.Normalize();
+        Vector3 desiredV = desiredD * MAX_SPEED;
+        return desiredV - velocity;
+    }
+
+    public void Flee(GameObject target)
+    {
+        Vector3 steeringV = SteerToFlee(target);
+        Vector3 steeringD = steeringV;
+        steeringD.Normalize();
+        float fleeForceCoef = 15.0f;
+        Vector3 acceleration = fleeForceCoef * steeringD / mass;
         Vector3 deltaV = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringV.magnitude);
         velocity = Vector3.ClampMagnitude(velocity + deltaV, MAX_SPEED);
