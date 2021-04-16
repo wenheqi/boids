@@ -18,9 +18,12 @@ public class Boid : MonoBehaviour
     private float cohesionForceCoef;
     private float separationForceCoef;
     public List<GameObject> nearbyBoids; // list of other boids that are within boidDetectionRadius
-    //SphereCollider boidCollider;
+    //BoxCollider boxCollider;
     private float boidDetectionRadius = 20.0f;
     public Rigidbody rb;
+
+    // constants for box collider
+    private Vector3 boxSize = new Vector3(5, 5, 25);
 
     // Start is called before the first frame update
     void Start()
@@ -46,17 +49,22 @@ public class Boid : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.isKinematic = true; // isKinematic set to true ignores physics when collisions happen
 
-        // a second collision sphere can be made is needed
-        //boidCollider = GetComponent<SphereCollider>();
+        // box collision zone in front of boid used for obstacle avoidance (not using cylinder because it's not part of the library)
+        //BoxCollider bc = GetComponent<BoxCollider>();
+        BoxCollider bc = this.gameObject.AddComponent(typeof(BoxCollider)) as BoxCollider;
+        bc.isTrigger = true;
+        bc.center = this.transform.position;
+        bc.size = boxSize;
+
         //this.boidCollider = this.gameObject.AddComponent(typeof(SphereCollider)) as SphereCollider;
         //this.boidCollider.center = this.transform.position;
         //this.boidCollider.radius = boidDetectionRadius;
         //this.boidCollider.isTrigger = true;
 
-        SphereCollider a = GetComponent<SphereCollider>();
-        a.isTrigger = true;
-        a.center = this.transform.position;
-        a.radius = boidDetectionRadius;
+        //SphereCollider a = GetComponent<SphereCollider>();
+        //a.isTrigger = true;
+        //a.center = this.transform.position;
+        //a.radius = boidDetectionRadius;
     }
 
     public Vector3 GetVelocity()
@@ -271,6 +279,10 @@ public class Boid : MonoBehaviour
 
     private void OnTriggerEnter(Collider collision)
     {
+        if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.name == "static")
+        {
+            // detected avoidance collision
+        }
         nearbyBoids.Add(collision.gameObject);
     }
 

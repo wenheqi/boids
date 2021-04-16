@@ -25,13 +25,13 @@ public class Flock : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        List<BoidProperty> transformList = new List<BoidProperty>();
+        //List<BoidProperty> transformList = new List<BoidProperty>();
 
         // take a screenshot of each boid's position, rotation, etc.
-        foreach (Boid b in boids)
-        {
-            transformList.Add(new BoidProperty(b));
-        }
+        //foreach (Boid b in boids)
+        //{
+            //transformList.Add(new BoidProperty(b));
+        //}
 
         foreach(Boid b in boids)
         {
