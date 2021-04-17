@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
 
 public class Environment : MonoBehaviour
@@ -46,7 +45,7 @@ public class Environment : MonoBehaviour
         // set wall position and size
         ceiling.transform.position = new Vector3(0, 100, 0);
         ceiling.transform.localScale = new Vector3(200, 25, 200);
-        ceiling.tag = "static"; // label wall so that boids will be able to identify as something to avoid
+        ceiling.tag = "static"; // label ceiling so that boids will be able to identify as something to avoid
         ceiling.AddComponent<Rigidbody>(); // needed for collision detection
         ceiling.GetComponent<Rigidbody>().isKinematic = true; // makes object unmovable
 
@@ -54,7 +53,7 @@ public class Environment : MonoBehaviour
         // set wall position and size
         floor.transform.position = new Vector3(0, -100, 0);
         floor.transform.localScale = new Vector3(200, 25, 200);
-        floor.tag = "static"; // label wall so that boids will be able to identify as something to avoid
+        floor.tag = "static"; // label floor so that boids will be able to identify as something to avoid
         floor.AddComponent<Rigidbody>(); // needed for collision detection
         floor.GetComponent<Rigidbody>().isKinematic = true; // makes object unmovable
     }
