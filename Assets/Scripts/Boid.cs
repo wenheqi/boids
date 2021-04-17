@@ -22,7 +22,7 @@ public class Boid : MonoBehaviour
     public List<GameObject> nearbyBoids; // list of other boids that are within boidDetectionRadius
     public bool isFlocking;
     //BoxCollider boxCollider;
-    private float boidDetectionRadius = 20.0f;
+    private float boidDetectionRadius = 70.0f;
     public Rigidbody rb;
 
     // constants for box collider
@@ -64,10 +64,10 @@ public class Boid : MonoBehaviour
         //this.boidCollider.radius = boidDetectionRadius;
         //this.boidCollider.isTrigger = true;
 
-        //SphereCollider a = GetComponent<SphereCollider>();
-        //a.isTrigger = true;
-        //a.center = this.transform.position;
-        //a.radius = boidDetectionRadius;
+        SphereCollider a = GetComponent<SphereCollider>();
+        a.isTrigger = true;
+        a.center = this.transform.position;
+        a.radius = boidDetectionRadius;
     }
 
     public Vector3 GetVelocity()
@@ -131,6 +131,16 @@ public class Boid : MonoBehaviour
                 acceleration * Time.deltaTime, steeringVelocity.magnitude);
             // velocity = truncate(velocity + acceleration, max_speed)
             velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, MAX_SPEED);
+        }
+        else
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(transform.position, transform.forward, out hit))
+            {
+                Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
+                Vector3 avoidVelocityVector = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
+                Avoid(avoidVelocityVector);
+            }
         }
 
         Move();
@@ -321,7 +331,6 @@ public class Boid : MonoBehaviour
         else if (collision.GetType() == typeof(BoxCollider))
         {
             // detected collision with static object
-            Debug.Log("detected wall collision");
             nearbyObjects.Add(collision.gameObject);
             isFlocking = false;
         }
@@ -338,18 +347,6 @@ public class Boid : MonoBehaviour
             nearbyObjects.Remove(collision.gameObject);
             isFlocking = true;
         }
-    }
-
-    private void OnTriggerStay(Collider collision)
-    {
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit))
-        {
-            Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
-            Vector3 avoidVelocityVector = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
-            Avoid(avoidVelocityVector);
-        }
-        //Avoid(collision.gameObject);
     }
 
     /*

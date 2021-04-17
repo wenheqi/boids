@@ -10,7 +10,7 @@ public class Flock : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 50; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
