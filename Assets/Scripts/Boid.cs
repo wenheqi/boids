@@ -327,10 +327,10 @@ public class Boid : MonoBehaviour
             // detected nearby boid
             nearbyBoids.Add(collision.gameObject);
         }
-        else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.tag == "static")
+        //else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.tag == "static")
+        else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.name == "static")
         //else if (collision.GetType() == typeof(BoxCollider))
         {
-            Debug.Log("detected box collision with wall");
             // detected collision with static object
             nearbyObjects.Add(collision.gameObject);
             isFlocking = false;
@@ -344,9 +344,8 @@ public class Boid : MonoBehaviour
             nearbyBoids.Remove(collision.gameObject);
         }
         //else if (collision.GetType() == typeof(BoxCollider))
-        else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.tag == "static")
+        else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.name == "static")
         {
-            Debug.Log("detected leaving box collision with wall");
             nearbyObjects.Remove(collision.gameObject);
             isFlocking = true;
         }

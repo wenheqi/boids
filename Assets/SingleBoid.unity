@@ -354,7 +354,7 @@ GameObject:
   - component: {fileID: 1573050968}
   - component: {fileID: 1573050967}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Environment
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -372,7 +372,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a9ab7b3ff06a2824ea83ee480867aeae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  wall: {fileID: 0}
+  ceiling: {fileID: 0}
+  floor: {fileID: 0}
+  wall1: {fileID: 0}
+  wall2: {fileID: 0}
+  wall3: {fileID: 0}
+  wall4: {fileID: 0}
 --- !u!4 &1573050968
 Transform:
   m_ObjectHideFlags: 0
