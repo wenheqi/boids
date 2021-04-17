@@ -22,7 +22,7 @@ public class Boid : MonoBehaviour
     public List<GameObject> nearbyBoids; // list of other boids that are within boidDetectionRadius
     public bool isFlocking;
     //BoxCollider boxCollider;
-    private float boidDetectionRadius = 70.0f;
+    private float boidDetectionRadius = 50.0f;
     public Rigidbody rb;
 
     // constants for box collider
@@ -327,8 +327,8 @@ public class Boid : MonoBehaviour
             // detected nearby boid
             nearbyBoids.Add(collision.gameObject);
         }
-        //else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.tag == "static")
-        else if (collision.GetType() == typeof(BoxCollider))
+        else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.tag == "static")
+        //else if (collision.GetType() == typeof(BoxCollider))
         {
             // detected collision with static object
             nearbyObjects.Add(collision.gameObject);
