@@ -25,6 +25,16 @@ public class Bin<T>
         objects.Remove(deadObj);
     }
 
+    public bool Contains(T obj)
+    {
+        return objects.Contains(obj);
+    }
+
+    public void Clear()
+    {
+        objects.Clear();
+    }
+
     public HashSet<T> GetObjects()
     {
         return objects;
