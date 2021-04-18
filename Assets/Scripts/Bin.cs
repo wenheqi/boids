@@ -12,6 +12,7 @@ public class Bin<T>
     {
         position = p;
         edgeLen = e;
+        objects = new HashSet<T>();
     }
 
     public void Add(T newObj)
