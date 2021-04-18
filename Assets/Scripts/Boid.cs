@@ -50,6 +50,14 @@ public class Boid : MonoBehaviour
         return velocity;
     }
 
+    public float GetPerceptionDistance()
+    {
+        return Mathf.Max(
+                Mathf.Max(alignmentDist, cohesionDist),
+                separationDist
+            );
+    }
+
     /*
      * Returns the desired steering velocity
      */
