@@ -19,7 +19,7 @@ public class Boid : MonoBehaviour
     private float separationForceCoef;
 
     public List<GameObject> nearbyObjects; // list of nearby objects that should be avoided
-    public List<GameObject> nearbyBoids; // list of other boids that are within boidDetectionRadius
+    public List<int> nearbyBoids; // list of other boids that are within boidDetectionRadius
     public bool isFlocking;
     //BoxCollider boxCollider;
     private float boidDetectionRadius = 50.0f;
@@ -170,25 +170,15 @@ public class Boid : MonoBehaviour
     {
         Vector3 steering = Vector3.zero;
         Vector3 avgPosition = Vector3.zero;
-        int numFlockmates = 0;
 
-        foreach(GameObject flockmate in flockmates)
-        {
-
-            // exclude boid itself from blockmates
-            if (flockmate.transform.position != transform.position &&
-                Vector3.Distance(this.transform.position,
-                flockmate.transform.position) <= cohesionDist)
-            {
-                // positon is in world space
-                avgPosition += flockmate.transform.position;
-                numFlockmates++;
-            }
+        foreach (int i in nearbyBoids)
+        { 
+            avgPosition += flockmates[i].transform.position;
         }
 
-        if (numFlockmates > 0)
+        if (nearbyBoids.Count > 0)
         {
-            avgPosition /= numFlockmates;
+            avgPosition /= nearbyBoids.Count;
             // desired_velocity = normalize (position - target) * max_speed
             // Note: the paper seems to be wrong about the vector calculation
             // should be target - position instead of position - target
@@ -198,7 +188,7 @@ public class Boid : MonoBehaviour
             // steering = desired_velocity - velocity
             steering = desiredVelocity - velocity;
         }
-        
+
         return steering;
     }
 
@@ -206,31 +196,23 @@ public class Boid : MonoBehaviour
     {
         Vector3 steering = Vector3.zero;
         Vector3 flee = Vector3.zero;
-        int numFlockmates = 0;
 
-        foreach (GameObject flockmate in flockmates)
+        foreach (int i in nearbyBoids)
         {
-            // exclude boid itself from blockmates
-            if (flockmate.transform.position != transform.position &&
-                Vector3.Distance(this.transform.position,
-                flockmate.transform.position) <= separationDist)
+            if (Vector3.Distance(transform.position, flockmates[i].transform.position) <
+                separationDist)
             {
-                if (Vector3.Distance(transform.position, flockmate.transform.position) <
-                    separationDist)
-                {
-                    // calculate how far and in what direction the boid wants to
-                    // flee
-                    Vector3 offset = transform.position - flockmate.transform.position;
-                    offset /= offset.sqrMagnitude;
-                    flee += offset;
-                    numFlockmates++;
-                }
+                // calculate how far and in what direction the boid wants to
+                // flee
+                Vector3 offset = transform.position - flockmates[i].transform.position;
+                offset /= offset.sqrMagnitude;
+                flee += offset;
             }
         }
 
-        if (numFlockmates > 0)
+        if (nearbyBoids.Count > 0)
         {
-            flee /= numFlockmates;
+            flee /= nearbyBoids.Count;
             flee.Normalize();
             steering = flee * MAX_SPEED - velocity;
         }
@@ -271,19 +253,12 @@ public class Boid : MonoBehaviour
         Vector3 avgForward = Vector3.zero;
         int numFlockmates = 0;
 
-        foreach (GameObject flockmate in flockmates)
+        foreach (int i in nearbyBoids)
         {
-            // exclude boid itself from flockmates
-            if (transform.position != flockmate.transform.position &&
-                Vector3.Distance(this.transform.position,
-                flockmate.transform.position) <= alignmentDist)
-            {
-                avgForward += flockmate.transform.forward;
-                numFlockmates++;
-            }
+            avgForward += flockmates[i].transform.forward;
         }
 
-        if (numFlockmates > 0)
+        if (nearbyBoids.Count > 0)
         {
             avgForward /= numFlockmates;
             avgForward.Normalize();
@@ -325,7 +300,7 @@ public class Boid : MonoBehaviour
         if (collision.GetType() == typeof(SphereCollider))
         {
             // detected nearby boid
-            nearbyBoids.Add(collision.gameObject);
+            nearbyBoids.Add(System.Convert.ToInt32(collision.gameObject.name));
         }
         //else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.tag == "static")
         else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.name == "static")
@@ -341,7 +316,7 @@ public class Boid : MonoBehaviour
     {
         if (collision.GetType() == typeof(SphereCollider))
         {
-            nearbyBoids.Remove(collision.gameObject);
+            nearbyBoids.Remove(System.Convert.ToInt32(collision.gameObject));
         }
         //else if (collision.GetType() == typeof(BoxCollider))
         else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.name == "static")

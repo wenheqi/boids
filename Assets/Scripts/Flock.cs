@@ -10,7 +10,7 @@ public class Flock : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < 20; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
@@ -18,7 +18,9 @@ public class Flock : MonoBehaviour
                     Random.Range(0.0f, 50.0f),
                     Random.Range(0.0f, 50.0f)
                 );
-            boids.Add(Instantiate(boid, position, Random.rotation));
+            Boid thisBoid = Instantiate(boid, position, Random.rotation);
+            thisBoid.gameObject.name = i.ToString();
+            boids.Add(thisBoid);
         }
     }
 
@@ -26,19 +28,22 @@ public class Flock : MonoBehaviour
     void Update()
     {
         //List<BoidProperty> transformList = new List<BoidProperty>();
+        List<GameObject> transformList = new List<GameObject>();
 
         // take a screenshot of each boid's position, rotation, etc.
-        //foreach (Boid b in boids)
-        //{
-            //transformList.Add(new BoidProperty(b));
-        //}
+        foreach (Boid b in boids)
+        {
+            GameObject boidClone = Instantiate(b.gameObject);
+            transformList.Add(boidClone);
+        }
 
         foreach(Boid b in boids)
         {
-            b.MoveInFlock(b.nearbyBoids);
+            b.MoveInFlock(transformList);
         }
     }
 
+    /*
     public Boid getClosestBoid(Boid sourceBoid)
     {
         float closestDistance = 500;
@@ -54,4 +59,5 @@ public class Flock : MonoBehaviour
         }
         return closestBoid;
     }
+    */
 }

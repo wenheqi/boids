@@ -16,6 +16,5 @@ public class BoidProperty
         rotation = boid.transform.rotation;
         velocity = boid.GetVelocity();
         forward = boid.transform.forward;
-        nearbyBoids = boid.nearbyBoids;
     }
 }
