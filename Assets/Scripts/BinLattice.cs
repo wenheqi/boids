@@ -43,7 +43,7 @@ public class BinLattice<T>
     /*
      * Checks if the postion is within the boundary of the bin lattice
      */
-    public bool Fits(Vector3 pos)
+    public bool InRange(Vector3 pos)
     {
         pos -= origin;
         if (0 <= pos.x && pos.x < edgeLen &&
@@ -55,28 +55,87 @@ public class BinLattice<T>
         return false;
     }
 
+    public bool InRange(int index)
+    {
+        return index >= 0 && index < bins.Length;
+    }
+
     /*
      * Calculates index of the bin that contains this position
      */
     public int GetBinIndex(Vector3 pos)
     {
+        if (!InRange(pos))
+            return -1;
+
         pos -= origin;
         int x = (int)(pos.x / binEdgeLen);
         int y = (int)(pos.y / binEdgeLen);
         int z = (int)(pos.z / binEdgeLen);
+
         return x + y * numBinsInOneLayer + z * numBinsInOneRow;
     }
 
     public void Add(Vector3 pos, T obj)
     {
         int index = GetBinIndex(pos);
+        if (index < 0)
+            return;
+        bins[index].Add(obj);
+    }
+
+    public void Add(int index, T obj)
+    {
+        if (index < 0 || index >= bins.Length)
+        {
+            throw new System.InvalidOperationException("index " + index +
+                                                        " is out of boundary");
+        }
         bins[index].Add(obj);
     }
 
     public void Remove(Vector3 pos, T obj)
     {
         int index = GetBinIndex(pos);
+        if (index < 0)
+            return;
         bins[index].Remove(obj);
+    }
+
+    public void Remove(int index, T obj)
+    {
+        if (index < 0 || index >= bins.Length)
+        {
+            throw new System.InvalidOperationException("index " + index +
+                                                        " is out of boundary");
+        }
+        bins[index].Remove(obj);
+    }
+
+    public bool Contains(Vector3 pos, T obj)
+    {
+        int index = GetBinIndex(pos);
+        if (index < 0)
+            return false;
+        return bins[index].Contains(obj);
+    }
+
+    public bool Contains(int index, T obj)
+    {
+        if (index < 0 || index >= bins.Length)
+        {
+            throw new System.InvalidOperationException("index " + index +
+                                                        " is out of boundary");
+        }
+        return bins[index].Contains(obj);
+    }
+
+    public void Clear()
+    {
+        foreach (Bin<T> b in bins)
+        {
+            b.Clear();
+        }
     }
 
     public List<T> QuerySphere(Vector3 center, float radius)
@@ -89,12 +148,15 @@ public class BinLattice<T>
         List<T> res = new List<T>();
         center -= origin;
         float half = eLen / 2;
-        int minX = (int) Mathf.Floor((center.x - half) / binEdgeLen);
-        int maxX = (int) Mathf.Ceil((center.x + half) / binEdgeLen);
-        int minY = (int)Mathf.Floor((center.y - half) / binEdgeLen);
-        int maxY = (int)Mathf.Ceil((center.y + half) / binEdgeLen);
-        int minZ = (int)Mathf.Floor((center.z - half) / binEdgeLen);
-        int maxZ = (int)Mathf.Ceil((center.z + half) / binEdgeLen);
+        int minX = (int) Mathf.Max(0f, (center.x - half) / binEdgeLen);
+        int maxX = (int) Mathf.Min(numBinsInOneRow - 1,
+                                   (center.x + half) / binEdgeLen);
+        int minY = (int) Mathf.Max(0f, (center.y - half) / binEdgeLen);
+        int maxY = (int) Mathf.Min(numBinsInOneRow - 1,
+                                   (center.y + half) / binEdgeLen);
+        int minZ = (int) Mathf.Max(0f, (center.z - half) / binEdgeLen);
+        int maxZ = (int) Mathf.Min(numBinsInOneRow - 1,
+                                   (center.z + half) / binEdgeLen);
 
         for (int y = minY; y <= maxY; y++)
         {
@@ -102,9 +164,8 @@ public class BinLattice<T>
             {
                 for (int x = minX; x <= maxX; x++)
                 {
-                    res.AddRange(bins[x +
-                                      y * numBinsInOneLayer +
-                                      z * numBinsInOneRow].GetObjects());
+                    int index = x + y * numBinsInOneLayer + z * numBinsInOneRow;
+                    res.AddRange(bins[index].GetObjects());
                 }
             }
         }
