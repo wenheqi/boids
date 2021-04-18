@@ -5,12 +5,14 @@ using UnityEngine;
 public class FlockTester : MonoBehaviour
 {
     public Boid boid;
-    private List<Boid> boids = new List<Boid>();
-
+    private List<Boid> boids;
+    private BinLattice<BoidProperty> boidsDb;
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < 200; i++)
+        boids = new List<Boid>();
+
+        for (int i = 0; i < 1000; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
@@ -20,22 +22,38 @@ public class FlockTester : MonoBehaviour
                 );
             boids.Add(Instantiate(boid, position, Random.rotation));
         }
+        Debug.Log("num of boids: " + boids.Count);
     }
 
     // Update is called once per frame
     void Update()
     {
-        List<BoidProperty> transformList = new List<BoidProperty>();
+        boidsDb = new BinLattice<BoidProperty>(
+                                                Vector3.zero,
+                                                50f,
+                                                10);
+
 
         // take a screenshot of each boid's position, rotation, etc.
         foreach (Boid b in boids)
         {
-            transformList.Add(new BoidProperty(b));
+            boidsDb.Add(b.transform.position, new BoidProperty(b));
         }
 
         foreach (Boid b in boids)
         {
-            b.MoveInFlock(transformList);
+            List<BoidProperty> neighbours = boidsDb.QuerySphere(
+                b.transform.position,
+                b.GetPerceptionDistance());
+            b.MoveInFlock(neighbours);
         }
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (boidsDb == null)
+            return;
+        // draw bins
+        boidsDb.Draw();
     }
 }
