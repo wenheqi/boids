@@ -374,4 +374,41 @@ public class Boid : MonoBehaviour
 
         Move();
     }
+
+    public void Teleport()
+    {
+        Vector3 pos = transform.position;
+        // left side out of boundary
+        while (pos.x < 0)
+        {
+            pos.x += 50f;
+        }
+        // right side out of boundary
+        while (pos.x >= 50)
+        {
+            pos.x -= 50f;
+        }
+        // bottom side out of boundary
+        while (pos.y < 0)
+        {
+            pos.y += 50f;
+        }
+        // top side out of boundary
+        while (pos.y >= 50)
+        {
+            pos.y -= 50f;
+        }
+        // back side out of boundary
+        while (pos.z < 0)
+        {
+            pos.z += 50f;
+        }
+        // front side out of boundary
+        while (pos.z >= 50)
+        {
+            pos.z -= 50f;
+        }
+
+        transform.position = pos;
+    }
 }
