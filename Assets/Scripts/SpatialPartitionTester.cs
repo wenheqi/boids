@@ -5,6 +5,9 @@ using UnityEngine;
 public class SpatialPartitionTester : MonoBehaviour
 {
     private BinLattice<float> bl;
+    float xRange = 200f;
+    float yRange = 300f;
+    float zRange = 900f;
 
     // Start is called before the first frame update
     void Start()
@@ -12,11 +15,11 @@ public class SpatialPartitionTester : MonoBehaviour
         bl = new BinLattice<float>(Vector3.zero, 500f, 10);
         
         // initialize elements
-        for (float x = 11f; x < 200f; x+=7f)
+        for (float x = 11f; x < xRange; x+=7f)
         {
-            for (float y = 3f; y < 300f; y += 9f)
+            for (float y = 3f; y < yRange; y += 9f)
             {
-                for (float z = 25f; z < 900f; z += 13f)
+                for (float z = 25f; z < zRange; z += 13f)
                 {
                     Vector3 pos = new Vector3(x/y, z/y, z/7f);
                     int index = bl.GetBinIndex(pos);
@@ -29,11 +32,11 @@ public class SpatialPartitionTester : MonoBehaviour
         }
 
         // check if each element is in the bin
-        for (float x = 11f; x < 200f; x += 7f)
+        for (float x = 11f; x < xRange; x += 7f)
         {
-            for (float y = 3f; y < 300f; y += 9f)
+            for (float y = 3f; y < yRange; y += 9f)
             {
-                for (float z = 25f; z < 900f; z += 13f)
+                for (float z = 25f; z < zRange; z += 13f)
                 {
                     Vector3 pos = new Vector3(x / y, z / y, z / 7f);
                     int index = bl.GetBinIndex(pos);
