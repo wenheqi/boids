@@ -37,6 +37,7 @@ public class FlockTester : MonoBehaviour
         // take a screenshot of each boid's position, rotation, etc.
         foreach (Boid b in boids)
         {
+            b.Teleport();
             boidsDb.Add(b.transform.position, new BoidProperty(b));
         }
 
@@ -54,6 +55,6 @@ public class FlockTester : MonoBehaviour
         if (boidsDb == null)
             return;
         // draw bins
-        boidsDb.Draw();
+        // boidsDb.Draw();
     }
 }
