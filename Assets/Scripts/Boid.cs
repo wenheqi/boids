@@ -13,10 +13,12 @@ public class Boid : MonoBehaviour
     private float alignmentDist;
     private float cohesionDist;
     private float separationDist;
+    private float obstacleAvoidDist;
 
     private float alignmentForceCoef;
     private float cohesionForceCoef;
     private float separationForceCoef;
+    private float obstacleAvoidanceForceCoef;
 
     // Start is called before the first frame update
     void Start()
@@ -27,10 +29,12 @@ public class Boid : MonoBehaviour
         // Note: if separation distance is too small, two fish will kiss
         // each other repeatedly
         separationDist = 5.0f;
+        obstacleAvoidDist = 3f;
 
         alignmentForceCoef = 8.0f;
         cohesionForceCoef = 8.0f;
         separationForceCoef = 12.0f;
+        obstacleAvoidanceForceCoef = 21f;
 
         // initialize velocity with initial orientation if set
         if (transform.forward != Vector3.zero)
@@ -311,6 +315,52 @@ public class Boid : MonoBehaviour
         Vector3 steeringD = steeringV; // steering direction
         steeringD.Normalize();
         Vector3 acceleration = separationForceCoef * steeringD / mass;
+        Vector3 deltaV = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringV.magnitude);
+        velocity = Vector3.ClampMagnitude(velocity + deltaV, MAX_SPEED);
+        Move();
+    }
+
+    private Vector3 SteerAlongSurface()
+    {
+        Ray ray = new Ray(transform.position, transform.forward);
+        RaycastHit hit;
+        Vector3 steering = Vector3.zero;
+        if (Physics.Raycast(ray, out hit, obstacleAvoidDist))
+        {
+            Debug.DrawLine(ray.origin, hit.point, Color.red);
+            Debug.Log(hit.transform.name);
+            // ray hits
+            if (hit.normal == -transform.forward)
+            {
+                steering = transform.right * MAX_SPEED;
+            }
+            else
+            {
+                steering = hit.normal * MAX_SPEED;
+            }
+        }
+        else
+        {
+            Debug.DrawLine(ray.origin, ray.origin + ray.direction * obstacleAvoidDist, Color.green);
+        }
+        return steering;
+    }
+
+    private Vector3 SteerToAvoidObstacle()
+    {
+        return SteerAlongSurface();
+    }
+
+    public void AvoidObstacle()
+    {
+        Vector3 steeringV = SteerToAvoidObstacle(); // steering velocity
+        // if there is no steering, i.e. boid's direction remains the same
+        // try to accelerate until it reaches max speed
+        steeringV = steeringV == Vector3.zero ? transform.forward * MAX_SPEED : steeringV;
+        Vector3 steeringD = steeringV; // steering direction
+        steeringD.Normalize();
+        Vector3 acceleration = obstacleAvoidanceForceCoef * steeringD / mass;
         Vector3 deltaV = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringV.magnitude);
         velocity = Vector3.ClampMagnitude(velocity + deltaV, MAX_SPEED);
