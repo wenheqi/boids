@@ -6,11 +6,17 @@ public class Flock : MonoBehaviour
 {
     public Boid boid;
     private List<Boid> boids = new List<Boid>();
+    // private int numBoids = 200;
+    // global array of boids for current frame
+    // public BoidProperty[] allBoid;
+    //public int[] allBoid = new int[numBoids];
+    public List<BoidProperty> allBoidPropertiesPerFrame = new List<BoidProperty>();
 
     // Start is called before the first frame update
     void Start()
     {
-        for (int i = 0; i < 20; i++)
+        // note: change number of boids to spawn in AllBoids.cs
+        for (int i = 0; i < AllBoids.numBoids; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
@@ -28,18 +34,20 @@ public class Flock : MonoBehaviour
     void Update()
     {
         //List<BoidProperty> transformList = new List<BoidProperty>();
-        List<GameObject> transformList = new List<GameObject>();
+        //List<GameObject> transformList = new List<GameObject>();
 
         // take a screenshot of each boid's position, rotation, etc.
+        int i = 0;
         foreach (Boid b in boids)
         {
-            GameObject boidClone = Instantiate(b.gameObject);
-            transformList.Add(boidClone);
+            AllBoids.allBoids[i] = new BoidProperty(b);
+            //transformList.Add(new BoidProperty(b));
+            ++i;
         }
 
         foreach(Boid b in boids)
         {
-            b.MoveInFlock(transformList);
+            b.MoveInFlock();
         }
     }
 

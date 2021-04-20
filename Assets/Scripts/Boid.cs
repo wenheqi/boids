@@ -10,8 +10,8 @@ public class Boid : MonoBehaviour
     private Vector3 velocity; // world space velocity
     private float mass;
 
-    private float alignmentDist;
-    private float cohesionDist;
+    //private float alignmentDist;
+    //private float cohesionDist;
     private float separationDist;
 
     private float alignmentForceCoef;
@@ -32,8 +32,8 @@ public class Boid : MonoBehaviour
     void Start()
     {
         mass = 1f;
-        alignmentDist = 7.5f;
-        cohesionDist = 9.0f;
+        //alignmentDist = 7.5f;
+        //cohesionDist = 9.0f;
         // Note: if separation distance is too small, two fish will kiss
         // each other repeatedly
         separationDist = 5.0f;
@@ -90,7 +90,7 @@ public class Boid : MonoBehaviour
     /*
      * Move based on Craig Reynolds' three rules
      */
-    public void MoveInFlock(List<GameObject> flock)
+    public void MoveInFlock()
     {
         if (isFlocking)
         {
@@ -100,17 +100,17 @@ public class Boid : MonoBehaviour
             Vector3 steeringForce = Vector3.zero;
 
             // desired alignment steering velocity/direction
-            Vector3 alignmentV = Align(flock);
+            Vector3 alignmentV = Align();
             Vector3 alignmentD = alignmentV;
             alignmentD.Normalize();
 
             // desired cohesion steering velocity/direction
-            Vector3 cohesionV = Cohere(flock);
+            Vector3 cohesionV = Cohere();
             Vector3 cohesionD = cohesionV;
             cohesionD.Normalize();
 
             // desired separation steering velocity/direction
-            Vector3 separationV = Separate(flock);
+            Vector3 separationV = Separate();
             Vector3 separationD = separationV;
             separationD.Normalize();
 
@@ -166,14 +166,14 @@ public class Boid : MonoBehaviour
      *  the difference between desired velocity and the object’s current 
      *  velocity
      */
-    private Vector3 Cohere(List<GameObject> flockmates)
+    private Vector3 Cohere()
     {
         Vector3 steering = Vector3.zero;
         Vector3 avgPosition = Vector3.zero;
 
         foreach (int i in nearbyBoids)
         { 
-            avgPosition += flockmates[i].transform.position;
+            avgPosition += AllBoids.allBoids[i].position;
         }
 
         if (nearbyBoids.Count > 0)
@@ -192,19 +192,19 @@ public class Boid : MonoBehaviour
         return steering;
     }
 
-    private Vector3 Separate(List<GameObject> flockmates)
+    private Vector3 Separate()
     {
         Vector3 steering = Vector3.zero;
         Vector3 flee = Vector3.zero;
 
         foreach (int i in nearbyBoids)
         {
-            if (Vector3.Distance(transform.position, flockmates[i].transform.position) <
+            if (Vector3.Distance(transform.position, AllBoids.allBoids[i].position) <
                 separationDist)
             {
                 // calculate how far and in what direction the boid wants to
                 // flee
-                Vector3 offset = transform.position - flockmates[i].transform.position;
+                Vector3 offset = transform.position - AllBoids.allBoids[i].position;
                 offset /= offset.sqrMagnitude;
                 flee += offset;
             }
@@ -247,20 +247,19 @@ public class Boid : MonoBehaviour
      *  the difference between this desired velocity and the character’s current
      *  velocity
      */
-    private Vector3 Align(List<GameObject> flockmates)
+    private Vector3 Align()
     {
         Vector3 steering = Vector3.zero;
         Vector3 avgForward = Vector3.zero;
-        int numFlockmates = 0;
 
         foreach (int i in nearbyBoids)
         {
-            avgForward += flockmates[i].transform.forward;
+            avgForward += AllBoids.allBoids[i].forward;
         }
 
         if (nearbyBoids.Count > 0)
         {
-            avgForward /= numFlockmates;
+            avgForward /= nearbyBoids.Count;
             avgForward.Normalize();
             steering = avgForward * MAX_SPEED - velocity;
         }
