@@ -24,6 +24,23 @@ public class Boid : MonoBehaviour
     private float separationAngle = 180f; // in degrees
     private float separationStrength = 12.0f;
 
+    public static Boid Create(
+        string prefabPath,
+        Vector3 position,
+        Quaternion rotation)
+    {
+        Boid prefab = Resources.Load<Boid>(prefabPath);
+        return Instantiate(prefab, position, rotation);
+    }
+
+    public static Boid Create(
+        Boid prefab,
+        Vector3 position,
+        Quaternion rotation)
+    {
+        return Instantiate(prefab, position, rotation);
+    }
+
     public float Mass
     {
         get

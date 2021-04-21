@@ -4,12 +4,13 @@ using UnityEngine;
 
 public class Flock : MonoBehaviour
 {
-    public Boid boid;
     private List<Boid> boids = new List<Boid>();
 
     // Start is called before the first frame update
     void Start()
     {
+        Boid prefab = Resources.Load<Boid>("Prefabs/Fish");
+
         for (int i = 0; i < 200; i++)
         {
             // generate a random position
@@ -18,7 +19,7 @@ public class Flock : MonoBehaviour
                     Random.Range(0.0f, 50.0f),
                     Random.Range(0.0f, 50.0f)
                 );
-            Boid b = Instantiate(boid, position, Random.rotation);
+            Boid b = Boid.Create(prefab, position, Random.rotation);
             b.AlignmentEnabled = true;
             b.CohesionEnabled = true;
             b.SeparationEnabled = true;
