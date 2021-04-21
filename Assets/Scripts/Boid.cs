@@ -9,20 +9,20 @@ public class Boid : MonoBehaviour
     private float maxForce = 27f;
     private Vector3 velocity = Vector3.forward; // world space velocity
 
-    private bool alignmentEnabled = true;
+    private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
-    private float alignmentAngle = 180f; // in degrees
-    private float alignmentForceCoef = 8.0f;
+    private float alignmentAngle = 130f; // in degrees
+    private float alignmentStrength = 8.0f;
 
-    private bool cohesionEnabled = true;
+    private bool cohesionEnabled = false;
     private float cohesionDist = 9.0f;
-    private float cohesionAngle = 180f; // in degrees
-    private float cohesionForceCoef = 8.0f;
+    private float cohesionAngle = 170f; // in degrees
+    private float cohesionStrength = 8.0f;
 
-    private bool separationEnabled = true;
+    private bool separationEnabled = false;
     private float separationDist = 5.0f;
-    private float separationAngle = 180f; // in degrees
-    private float separationForceCoef = 12.0f;
+    private float separationAngle = 130f; // in degrees
+    private float separationStrength = 12.0f;
 
     public float Mass
     {
@@ -116,20 +116,20 @@ public class Boid : MonoBehaviour
         }
     }
 
-    public float AlignmentForceCoef
+    public float AlignmentStrength
     {
         get
         {
-            return alignmentForceCoef;
+            return alignmentStrength;
         }
         set
         {
             if (value < 0)
             {
-                alignmentForceCoef = 0;
+                alignmentStrength = 0;
                 return;
             }
-            alignmentForceCoef = value;
+            alignmentStrength = value;
         }
     }
 
@@ -162,20 +162,20 @@ public class Boid : MonoBehaviour
         }
     }
 
-    public float CohesionForceCoef
+    public float CohesionStrength
     {
         get
         {
-            return cohesionForceCoef;
+            return cohesionStrength;
         }
         set
         {
             if (value < 0)
             {
-                cohesionForceCoef = 0;
+                cohesionStrength = 0;
                 return;
             }
-            cohesionForceCoef = value;
+            cohesionStrength = value;
         }
     }
 
@@ -208,20 +208,20 @@ public class Boid : MonoBehaviour
         }
     }
 
-    public float SeparationForceCoef
+    public float SeparationStrength
     {
         get
         {
-            return separationForceCoef;
+            return separationStrength;
         }
         set
         {
             if (value < 0)
             {
-                separationForceCoef = 0;
+                separationStrength = 0;
                 return;
             }
-            separationForceCoef = value;
+            separationStrength = value;
         }
     }
 
@@ -321,7 +321,7 @@ public class Boid : MonoBehaviour
 
     private void SteerToAlign(List<BoidProperty> flockmates)
     {
-        Steer(Align(flockmates), alignmentForceCoef);
+        Steer(Align(flockmates), alignmentStrength);
     }
 
     /*
@@ -384,7 +384,7 @@ public class Boid : MonoBehaviour
 
     public void SteerToCohere(List<BoidProperty> flockmates)
     {
-        Steer(Cohere(flockmates), cohesionForceCoef);
+        Steer(Cohere(flockmates), cohesionStrength);
     }
 
     private Vector3 Separate(List<BoidProperty> flockmates)
@@ -425,7 +425,7 @@ public class Boid : MonoBehaviour
 
     public void SteerToSeparate(List<BoidProperty> flockmates)
     {
-        Steer(Separate(flockmates), separationForceCoef);
+        Steer(Separate(flockmates), separationStrength);
     }
 
     // Start is called before the first frame update
@@ -461,7 +461,7 @@ public class Boid : MonoBehaviour
             Vector3 alignmentD = alignmentV;
             alignmentD.Normalize();
             steeringVelocity += alignmentV;
-            steeringForce += alignmentForceCoef * alignmentD;
+            steeringForce += alignmentStrength * alignmentD;
         }
         
         // desired cohesion steering velocity/direction
@@ -471,7 +471,7 @@ public class Boid : MonoBehaviour
             Vector3 cohesionD = cohesionV;
             cohesionD.Normalize();
             steeringVelocity += cohesionV;
-            steeringForce += cohesionForceCoef * cohesionD;
+            steeringForce += cohesionStrength * cohesionD;
         }
         
         // desired separation steering velocity/direction
@@ -481,7 +481,7 @@ public class Boid : MonoBehaviour
             Vector3 separationD = separationV;
             separationD.Normalize();
             steeringVelocity += separationV;
-            steeringForce += separationForceCoef * separationD;
+            steeringForce += separationStrength * separationD;
         }
 
         // steering_force = truncate (steering_direction, max_force)
