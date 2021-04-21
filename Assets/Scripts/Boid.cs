@@ -404,14 +404,27 @@ public class Boid : MonoBehaviour
         Vector3 separationD = separationV;
         separationD.Normalize();
 
+        // desired obstacle avoidance steering velocity/direction
+        Vector3 obstacleV = SteerToAvoidObstacle();
+        Vector3 obstacleD = obstacleV;
+        obstacleD.Normalize();
+
         steeringVelocity += alignmentV;
         steeringForce += alignmentForceCoef * alignmentD;
         steeringVelocity += cohesionV;
         steeringForce += cohesionForceCoef * cohesionD;
         steeringVelocity += separationV;
         steeringForce += separationForceCoef * separationD;
+        steeringForce += obstacleAvoidanceForceCoef * obstacleD;
+        steeringVelocity += obstacleV;
 
         // steering_force = truncate (steering_direction, max_force)
+        if (steeringForce == Vector3.zero)
+        {
+            // maintain currend direction and try to accelerate to MAX_SPEED
+            steeringForce = transform.forward * MAX_FORCE;
+            steeringVelocity = transform.forward * MAX_SPEED;
+        }
         steeringForce = Vector3.ClampMagnitude(steeringForce, MAX_FORCE);
         steeringVelocity = Vector3.ClampMagnitude(steeringVelocity, MAX_SPEED);
         // acceleration = steering_force / mass
