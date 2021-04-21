@@ -13,7 +13,7 @@ public class BoidProperty
     {
         position = boid.transform.position;
         rotation = boid.transform.rotation;
-        velocity = boid.GetVelocity();
+        velocity = boid.Velocity;
         forward = boid.transform.forward;
     }
 }
