@@ -270,8 +270,9 @@ public class Boid : MonoBehaviour
         Vector3 acceleration = Vector3.ClampMagnitude(
             steeringD * forceCoef, maxForce) / mass;
 
-        Vector3 deltaV = Vector3.ClampMagnitude(
-            acceleration * Time.deltaTime, steeringV.magnitude);
+        //Vector3 deltaV = Vector3.ClampMagnitude(
+            //acceleration * Time.deltaTime, steeringV.magnitude);
+        Vector3 deltaV = acceleration * Time.deltaTime;
 
         //Velocity = velocity + deltaV;
         velocity = Vector3.ClampMagnitude(velocity + deltaV, maxSpeed);
