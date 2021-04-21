@@ -24,6 +24,8 @@ public class Boid : MonoBehaviour
     private float separationAngle = 180f; // in degrees
     private float separationStrength = 12.0f;
 
+    private float raycastLen = 15; // obstacle avoidance detection distance
+
     public static Boid Create(
         string prefabPath,
         Vector3 position,
@@ -519,5 +521,39 @@ public class Boid : MonoBehaviour
         velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, maxSpeed);
 
         Move();
+    }
+
+    public Vector3 getRaycastVector()
+    {
+        Ray ray = new Ray(transform.position, transform.forward);
+        RaycastHit hit;
+        Vector3 steering = Vector3.zero;
+        if (Physics.Raycast(ray, out hit, raycastLen))
+        {
+            if (hit.normal == -transform.forward)
+            {
+                steering = transform.right * maxSpeed;
+            }
+            else
+            {
+                // normalized vector reflecting from hit surface
+                Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
+                // reflected ray vector from the boid vector around the normal surface vector
+                steering = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
+                steering = Vector3.Normalize(steering) * maxSpeed;
+            }
+        }
+        return steering;
+    }
+
+    /*
+     * Returns the desired steering velocity
+     */
+    private Vector3 SteerAway(GameObject target)
+    {
+        Vector3 desiredD = target.transform.position - transform.position;
+        desiredD.Normalize();
+        Vector3 desiredV = desiredD * maxSpeed;
+        return desiredV - velocity;
     }
 }
