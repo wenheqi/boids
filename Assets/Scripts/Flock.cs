@@ -19,9 +19,9 @@ public class Flock : MonoBehaviour
                     Random.Range(0.0f, 50.0f)
                 );
             Boid b = Instantiate(boid, position, Random.rotation);
-            //b.AlignmentEnabled = true;
+            b.AlignmentEnabled = true;
             b.CohesionEnabled = true;
-            //b.SeparationEnabled = true;
+            b.SeparationEnabled = true;
             boids.Add(b);
         }
     }

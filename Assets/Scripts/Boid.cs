@@ -11,17 +11,17 @@ public class Boid : MonoBehaviour
 
     private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
-    private float alignmentAngle = 130f; // in degrees
+    private float alignmentAngle = 180f; // in degrees
     private float alignmentStrength = 8.0f;
 
     private bool cohesionEnabled = false;
     private float cohesionDist = 9.0f;
-    private float cohesionAngle = 170f; // in degrees
+    private float cohesionAngle = 180f; // in degrees
     private float cohesionStrength = 8.0f;
 
     private bool separationEnabled = false;
     private float separationDist = 5.0f;
-    private float separationAngle = 130f; // in degrees
+    private float separationAngle = 180f; // in degrees
     private float separationStrength = 12.0f;
 
     public float Mass
@@ -256,7 +256,8 @@ public class Boid : MonoBehaviour
         Vector3 deltaV = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringV.magnitude);
 
-        Velocity = velocity + deltaV;
+        //Velocity = velocity + deltaV;
+        velocity = Vector3.ClampMagnitude(velocity + deltaV, maxSpeed);
 
         Move();
     }
@@ -300,8 +301,7 @@ public class Boid : MonoBehaviour
                 Vector3.Distance(this.transform.position,
                 flockmate.position) <= alignmentDist &&
                 Vector3.Angle(transform.forward,
-                    Vector3.ProjectOnPlane(
-                    flockmate.position - transform.position, transform.up)
+                    flockmate.position - transform.position
                 ) <= alignmentAngle)
             {
                 avgForward += flockmate.forward;
@@ -356,8 +356,7 @@ public class Boid : MonoBehaviour
                 Vector3.Distance(this.transform.position,
                 flockmate.position) <= cohesionDist &&
                 Vector3.Angle(transform.forward,
-                    Vector3.ProjectOnPlane(
-                    flockmate.position - transform.position, transform.up)
+                    flockmate.position - transform.position
                 ) <= cohesionAngle)
             {
                 // positon is in world space
@@ -400,8 +399,7 @@ public class Boid : MonoBehaviour
                 Vector3.Distance(this.transform.position,
                 flockmate.position) <= separationDist &&
                 Vector3.Angle(transform.forward,
-                    Vector3.ProjectOnPlane(
-                    flockmate.position - transform.position, transform.up)
+                    flockmate.position - transform.position
                 ) <= separationAngle)
             {
                 // calculate how far and in what direction the boid wants to
@@ -487,11 +485,11 @@ public class Boid : MonoBehaviour
         // steering_force = truncate (steering_direction, max_force)
         steeringForce = Vector3.ClampMagnitude(steeringForce, maxForce);
         steeringVelocity = Vector3.ClampMagnitude(steeringVelocity, maxSpeed);
-        if (steeringVelocity == Vector3.zero)
+        if (steeringForce == Vector3.zero)
         {
             // boid forward direction remains the same, speed up to
             // reach max speed limit
-            steeringForce = transform.forward * maxForce * 0.5f;
+            steeringForce = transform.forward * maxForce * 0.05f;
             steeringVelocity = transform.forward * maxSpeed;
         }
         // acceleration = steering_force / mass
