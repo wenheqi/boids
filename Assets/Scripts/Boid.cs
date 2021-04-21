@@ -20,13 +20,19 @@ public class Boid : MonoBehaviour
 
     public List<GameObject> nearbyObjects; // list of nearby objects that should be avoided
     public List<int> nearbyBoids; // list of other boids that are within boidDetectionRadius
-    public bool isFlocking;
     //BoxCollider boxCollider;
-    private float boidDetectionRadius = 50.0f;
+    private float boidDetectionRadius = 8.0f;
     public Rigidbody rb;
 
+    private Vector3 avoidVector;
+    private Vector3 flockVector;
+
+    // weights for combining flock and avoid vectors [0,1], sum = 1, higher is more weight
+    private float flockVectorWeight = 0.2f;
+    private float avoidVectorWeight = 0.8f;
+
     // constants for box collider
-    private Vector3 boxSize = new Vector3(5, 5, 25);
+    private Vector3 boxSize = new Vector3(2, 2, 10);
 
     // Start is called before the first frame update
     void Start()
@@ -92,58 +98,101 @@ public class Boid : MonoBehaviour
      */
     public void MoveInFlock()
     {
-        if (isFlocking)
+        if (nearbyObjects.Count > 0)
         {
-            // steering velocity of alignemnt, cohesion and separation
-            Vector3 steeringVelocity = Vector3.zero;
-            // steering force of alignemnt, cohesion and separation
-            Vector3 steeringForce = Vector3.zero;
+            getRaycastVector();
+            getFlockVector(true);
+            //if (avoidVector != Vector3.zero)
+            //{
+                //velocity = avoidVectorWeight * avoidVector + flockVectorWeight * flockVector; 
+            //}
 
-            // desired alignment steering velocity/direction
-            Vector3 alignmentV = Align();
-            Vector3 alignmentD = alignmentV;
-            alignmentD.Normalize();
-
-            // desired cohesion steering velocity/direction
-            Vector3 cohesionV = Cohere();
-            Vector3 cohesionD = cohesionV;
-            cohesionD.Normalize();
-
-            // desired separation steering velocity/direction
-            Vector3 separationV = Separate();
-            Vector3 separationD = separationV;
-            separationD.Normalize();
-
-            steeringVelocity += alignmentV;
-            steeringForce += alignmentForceCoef * alignmentD;
-            steeringVelocity += cohesionV;
-            steeringForce += cohesionForceCoef * cohesionD;
-            steeringVelocity += separationV;
-            steeringForce += separationForceCoef * separationD;
-
-            // steering_force = truncate (steering_direction, max_force)
-            steeringForce = Vector3.ClampMagnitude(steeringForce, MAX_FORCE);
-            steeringVelocity = Vector3.ClampMagnitude(steeringVelocity, MAX_SPEED);
-            // acceleration = steering_force / mass
-            Vector3 acceleration = steeringForce / mass;
-            // avoid overshooting
-            Vector3 deltaVelocity = Vector3.ClampMagnitude(
-                acceleration * Time.deltaTime, steeringVelocity.magnitude);
-            // velocity = truncate(velocity + acceleration, max_speed)
-            velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, MAX_SPEED);
+            // combine the results of avoid and flock vector (weighted)
+            //RaycastHit hit;
+            //if (Physics.Raycast(transform.position, transform.forward, out hit))
+            //{
+                //Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
+                //Vector3 avoidVelocityVector = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
+                //avoidVector = Avoid(avoidVelocityVector);
+            //}
+            //else
+            //{
+                //avoidVector = Vector3.zero;
+            //}
         }
-        else
-        {
-            RaycastHit hit;
-            if (Physics.Raycast(transform.position, transform.forward, out hit))
-            {
-                Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
-                Vector3 avoidVelocityVector = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
-                Avoid(avoidVelocityVector);
-            }
+        else {
+            getFlockVector(false);
         }
 
         Move();
+    }
+
+    public void getFlockVector(bool isAvoid)
+    {
+        // steering velocity of alignemnt, cohesion and separation
+        Vector3 steeringVelocity = Vector3.zero;
+        // steering force of alignemnt, cohesion and separation
+        Vector3 steeringForce = Vector3.zero;
+
+        // desired alignment steering velocity/direction
+        Vector3 alignmentV = Align();
+        Vector3 alignmentD = alignmentV;
+        alignmentD.Normalize();
+
+        // desired cohesion steering velocity/direction
+        Vector3 cohesionV = Cohere();
+        Vector3 cohesionD = cohesionV;
+        cohesionD.Normalize();
+
+        // desired separation steering velocity/direction
+        Vector3 separationV = Separate();
+        Vector3 separationD = separationV;
+        separationD.Normalize();
+
+        steeringVelocity += alignmentV;
+        steeringForce += alignmentForceCoef * alignmentD;
+        steeringVelocity += cohesionV;
+        steeringForce += cohesionForceCoef * cohesionD;
+        steeringVelocity += separationV;
+        steeringForce += separationForceCoef * separationD;
+
+        // modify steering vector if boid detects an object in front of it
+        if (isAvoid && avoidVector != Vector3.zero)
+        {
+            steeringForce = flockVectorWeight * steeringForce + avoidVectorWeight * avoidVector; 
+        }
+        // steering_force = truncate (steering_direction, max_force)
+        steeringForce = Vector3.ClampMagnitude(steeringForce, MAX_FORCE);
+        steeringVelocity = Vector3.ClampMagnitude(steeringVelocity, MAX_SPEED);
+        // acceleration = steering_force / mass
+        Vector3 acceleration = steeringForce / mass;
+        // avoid overshooting
+        Vector3 deltaVelocity = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringVelocity.magnitude);
+        // velocity = truncate(velocity + acceleration, max_speed)
+        velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, MAX_SPEED);
+        // set minimum velocity, because otherwise boids tend to stop and spin
+        if (velocity.sqrMagnitude < 3.0f)
+        {
+            velocity = velocity.normalized * 3.0f;
+        }
+        
+    }
+
+    public void getRaycastVector()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit))
+        {
+            // normalized vector reflecting from hit surface
+            Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
+            // reflected ray vector from the boid vector around the normal surface vector
+            avoidVector = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
+        }
+        else
+        {
+            avoidVector = Vector3.zero;
+        }
     }
 
     /*
@@ -279,8 +328,8 @@ public class Boid : MonoBehaviour
     }
 
     //public void Avoid(GameObject target)
-    public void Avoid(Vector3 target)
-    {
+    //public Vector3 Avoid(Vector3 target)
+    //{
         //Vector3 steeringV = SteerAway(target); // steering velocity
         //Vector3 steeringD = steeringV; // steering direction
         //steeringD.Normalize();
@@ -289,10 +338,12 @@ public class Boid : MonoBehaviour
         //Vector3 acceleration = seekForceCoef * steeringD / mass;
         //Vector3 deltaV = Vector3.ClampMagnitude(
         //acceleration * Time.deltaTime, steeringV.magnitude);
-        velocity = target;
+        //velocity = target;
         //velocity = Vector3.ClampMagnitude(velocity + deltaV, MAX_SPEED);
-        Move();
-    }
+
+        //velocity = target;
+        //Move();
+    //}
 
     private void OnTriggerEnter(Collider collision)
     {
@@ -307,7 +358,6 @@ public class Boid : MonoBehaviour
         {
             // detected collision with static object
             nearbyObjects.Add(collision.gameObject);
-            isFlocking = false;
         }
     }
 
@@ -315,13 +365,12 @@ public class Boid : MonoBehaviour
     {
         if (collision.GetType() == typeof(SphereCollider))
         {
-            nearbyBoids.Remove(System.Convert.ToInt32(collision.gameObject));
+            nearbyBoids.Remove(System.Convert.ToInt32(collision.gameObject.name));
         }
         //else if (collision.GetType() == typeof(BoxCollider))
         else if (collision.GetType() == typeof(BoxCollider) && collision.gameObject.name == "static")
         {
             nearbyObjects.Remove(collision.gameObject);
-            isFlocking = true;
         }
     }
 

@@ -11,6 +11,8 @@ public class Flock : MonoBehaviour
     // public BoidProperty[] allBoid;
     //public int[] allBoid = new int[numBoids];
     public List<BoidProperty> allBoidPropertiesPerFrame = new List<BoidProperty>();
+    private float lowerBoundSpawn = -25.0f;
+    private float upperBoundSpawn = 25.0f;
 
     // Start is called before the first frame update
     void Start()
@@ -20,9 +22,9 @@ public class Flock : MonoBehaviour
         {
             // generate a random position
             Vector3 position = new Vector3(
-                    Random.Range(0.0f, 50.0f),
-                    Random.Range(0.0f, 50.0f),
-                    Random.Range(0.0f, 50.0f)
+                    Random.Range(lowerBoundSpawn, upperBoundSpawn),
+                    Random.Range(lowerBoundSpawn, upperBoundSpawn),
+                    Random.Range(lowerBoundSpawn, upperBoundSpawn)
                 );
             Boid thisBoid = Instantiate(boid, position, Random.rotation);
             thisBoid.gameObject.name = i.ToString();
