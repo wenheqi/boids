@@ -9,6 +9,11 @@ public class Boid : MonoBehaviour
     private float maxForce = 27f;
     private Vector3 velocity = Vector3.forward; // world space velocity
 
+    private bool avoidanceEnabled = false;
+    private float avoidanceDist = 7.5f;
+    private float avoidanceStrength = 8.0f;
+    private float avoidanceRaycastLen = 15; // obstacle avoidance detection distance
+
     private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
     private float alignmentAngle = 180f; // in degrees
@@ -24,7 +29,6 @@ public class Boid : MonoBehaviour
     private float separationAngle = 180f; // in degrees
     private float separationStrength = 12.0f;
 
-    private float raycastLen = 15; // obstacle avoidance detection distance
 
     public static Boid Create(
         string prefabPath,
@@ -103,6 +107,69 @@ public class Boid : MonoBehaviour
         set
         {
             velocity = Vector3.ClampMagnitude(value, maxSpeed);
+        }
+    }
+
+    public bool AvoidanceEnabled
+    {
+        get
+        {
+            return avoidanceEnabled;
+        }
+        set
+        {
+            avoidanceEnabled = value;
+        }
+    }
+
+    public float AvoidanceDist
+    {
+        get
+        {
+            return avoidanceDist;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                avoidanceDist = 0;
+                return;
+            }
+            avoidanceDist = value;
+        }
+    }
+
+    public float AvoidanceStrength
+    {
+        get
+        {
+            return avoidanceStrength;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                avoidanceStrength = 0;
+                return;
+            }
+            avoidanceStrength = value;
+        }
+    }
+
+    public float AvoidanceRaycastLen
+    {
+        get
+        {
+            return avoidanceRaycastLen;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                avoidanceRaycastLen = 0;
+                return;
+            }
+            avoidanceRaycastLen = value;
         }
     }
 
@@ -472,8 +539,28 @@ public class Boid : MonoBehaviour
         // steering force of alignemnt, cohesion and separation
         Vector3 steeringForce = Vector3.zero;
 
+        // desired avoidance steering velocity/direction
+        if (avoidanceEnabled)
+        {
+            Vector3 avoidanceV = getRaycastVector();
+            Vector3 avoidanceD = avoidanceV;
+            avoidanceD.Normalize();
+            steeringVelocity += avoidanceV;
+            steeringForce += avoidanceStrength * avoidanceD;
+        }
+
+        // desired separation steering velocity/direction
+        if (steeringForce.magnitude < maxForce && separationEnabled)
+        {
+            Vector3 separationV = Separate(flock);
+            Vector3 separationD = separationV;
+            separationD.Normalize();
+            steeringVelocity += separationV;
+            steeringForce += separationStrength * separationD;
+        }
+
         // desired alignment steering velocity/direction
-        if (alignmentEnabled)
+        if (steeringForce.magnitude < maxForce && alignmentEnabled)
         {
             Vector3 alignmentV = Align(flock);
             Vector3 alignmentD = alignmentV;
@@ -483,7 +570,7 @@ public class Boid : MonoBehaviour
         }
         
         // desired cohesion steering velocity/direction
-        if (cohesionEnabled)
+        if (steeringForce.magnitude < maxForce && cohesionEnabled)
         {
             Vector3 cohesionV = Cohere(flock);
             Vector3 cohesionD = cohesionV;
@@ -492,15 +579,6 @@ public class Boid : MonoBehaviour
             steeringForce += cohesionStrength * cohesionD;
         }
         
-        // desired separation steering velocity/direction
-        if (separationEnabled)
-        {
-            Vector3 separationV = Separate(flock);
-            Vector3 separationD = separationV;
-            separationD.Normalize();
-            steeringVelocity += separationV;
-            steeringForce += separationStrength * separationD;
-        }
 
         // steering_force = truncate (steering_direction, max_force)
         steeringForce = Vector3.ClampMagnitude(steeringForce, maxForce);
@@ -528,7 +606,7 @@ public class Boid : MonoBehaviour
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
         Vector3 steering = Vector3.zero;
-        if (Physics.Raycast(ray, out hit, raycastLen))
+        if (Physics.Raycast(ray, out hit, avoidanceRaycastLen))
         {
             if (hit.normal == -transform.forward)
             {
