@@ -5,24 +5,28 @@ using UnityEngine;
 public class Boid : MonoBehaviour
 {
     private float mass = 1;
-    private float maxSpeed = 9f;
-    private float maxForce = 27f;
+    private float maxSpeed = 20f;
+    private float maxForce = 100f;
     private Vector3 velocity = Vector3.forward; // world space velocity
 
     private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
     private float alignmentAngle = 180f; // in degrees
-    private float alignmentStrength = 8.0f;
+    private float alignmentStrength = 15.0f;
 
     private bool cohesionEnabled = false;
     private float cohesionDist = 9.0f;
     private float cohesionAngle = 180f; // in degrees
-    private float cohesionStrength = 8.0f;
+    private float cohesionStrength = 15.0f;
 
     private bool separationEnabled = false;
     private float separationDist = 5.0f;
     private float separationAngle = 180f; // in degrees
-    private float separationStrength = 12.0f;
+    private float separationStrength = 20.0f;
+
+    private Vector3 goal = Vector3.zero;
+    private bool goalSeekingEnabled = false;
+    private float goalSeekingStrength = 18.0f;
 
     public static Boid Create(
         string prefabPath,
@@ -253,6 +257,30 @@ public class Boid : MonoBehaviour
         }
     }
 
+    public Vector3 Goal
+    {
+        get
+        {
+            return goal;
+        }
+        set
+        {
+            goal = value;
+        }
+    }
+
+    public bool GoalSeekingEnabled
+    {
+        get
+        {
+            return goalSeekingEnabled;
+        }
+        set
+        {
+            goalSeekingEnabled = value;
+        }
+    }
+
     public void Move()
     {
         transform.Translate(velocity * Time.deltaTime, Space.World);
@@ -443,6 +471,16 @@ public class Boid : MonoBehaviour
         Steer(Separate(flockmates), separationStrength);
     }
 
+    public Vector3 SeekGoal()
+    {
+        return (goal - transform.position) * maxSpeed - velocity;
+    }
+
+    private void SteerToSeekGoal()
+    {
+        Steer(SeekGoal(), goalSeekingStrength);
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -497,6 +535,15 @@ public class Boid : MonoBehaviour
             separationD.Normalize();
             steeringVelocity += separationV;
             steeringForce += separationStrength * separationD;
+        }
+
+        if (goalSeekingEnabled)
+        {
+            Vector3 goalSeekingV = SeekGoal();
+            Vector3 goalSeekingD = goalSeekingV;
+            goalSeekingD.Normalize();
+            steeringVelocity += goalSeekingV;
+            steeringForce += goalSeekingStrength * goalSeekingD;
         }
 
         // steering_force = truncate (steering_direction, max_force)
