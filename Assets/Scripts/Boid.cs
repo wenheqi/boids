@@ -10,9 +10,9 @@ public class Boid : MonoBehaviour
     private Vector3 velocity = Vector3.forward; // world space velocity
 
     private bool avoidanceEnabled = false;
-    private float avoidanceDist = 7.5f;
-    private float avoidanceStrength = 8.0f;
-    private float avoidanceRaycastLen = 15; // obstacle avoidance detection distance
+    private float avoidanceDist = 10f;
+    private float avoidanceStrength = 10f;
+    private float avoidanceRaycastLen = 15f; // obstacle avoidance detection distance
 
     private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
@@ -538,11 +538,13 @@ public class Boid : MonoBehaviour
         Vector3 steeringVelocity = Vector3.zero;
         // steering force of alignemnt, cohesion and separation
         Vector3 steeringForce = Vector3.zero;
+        // avoidance vector not encapsulated due to needing in calculating delta velocity
+        Vector3 avoidanceV = Vector3.zero;
 
         // desired avoidance steering velocity/direction
         if (avoidanceEnabled)
         {
-            Vector3 avoidanceV = getRaycastVector();
+            avoidanceV = getRaycastVector();
             Vector3 avoidanceD = avoidanceV;
             avoidanceD.Normalize();
             steeringVelocity += avoidanceV;
@@ -593,8 +595,17 @@ public class Boid : MonoBehaviour
         // acceleration = steering_force / mass
         Vector3 acceleration = steeringForce / mass;
         // avoid overshooting
-        Vector3 deltaVelocity = Vector3.ClampMagnitude(
-            acceleration * Time.deltaTime, steeringVelocity.magnitude);
+        Vector3 deltaVelocity = Vector3.zero;
+        if (avoidanceV != Vector3.zero)
+        {
+            deltaVelocity = acceleration * Time.deltaTime;
+        }
+        else
+        {
+            deltaVelocity = Vector3.ClampMagnitude(
+                acceleration * Time.deltaTime, steeringVelocity.magnitude);
+        }
+
         // velocity = truncate(velocity + acceleration, max_speed)
         velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, maxSpeed);
 

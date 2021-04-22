@@ -20,6 +20,7 @@ public class Flock : MonoBehaviour
                     Random.Range(0.0f, 50.0f)
                 );
             Boid b = Boid.Create(prefab, position, Random.rotation);
+            b.AvoidanceEnabled = true;
             b.AlignmentEnabled = true;
             b.CohesionEnabled = true;
             b.SeparationEnabled = true;
