@@ -23,6 +23,8 @@ public class Flock : MonoBehaviour
             b.AlignmentEnabled = true;
             b.CohesionEnabled = true;
             b.SeparationEnabled = true;
+            b.GoalSeekingEnabled = true;
+            b.Goal = new Vector3(-10f, 10f, -10f);
             boids.Add(b);
         }
     }
