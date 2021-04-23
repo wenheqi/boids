@@ -5,21 +5,23 @@ using UnityEngine;
 public class Flock : MonoBehaviour
 {
     private List<Boid> boids = new List<Boid>();
+    public Boid boid;
 
     // Start is called before the first frame update
     void Start()
     {
-        Boid prefab = Resources.Load<Boid>("Prefabs/Fish");
+        //Boid prefab = Resources.Load<Boid>("Prefabs/Spaceship");
 
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < 300; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
-                    Random.Range(0.0f, 50.0f),
-                    Random.Range(0.0f, 50.0f),
-                    Random.Range(0.0f, 50.0f)
+                    Random.Range(-2840.0f, -2790.0f),
+                    Random.Range(-500.0f, -450.0f),
+                    Random.Range(3700.0f, 3750.0f)
                 );
-            Boid b = Boid.Create(prefab, position, Random.rotation);
+            //Boid b = Boid.Create(prefab, position, Random.rotation);
+            Boid b = Instantiate(boid, position, Random.rotation);
             b.AvoidanceEnabled = true;
             b.AlignmentEnabled = true;
             b.CohesionEnabled = true;

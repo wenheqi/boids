@@ -11,7 +11,7 @@ public class Boid : MonoBehaviour
 
     private bool avoidanceEnabled = false;
     private float avoidanceDist = 10f;
-    private float avoidanceStrength = 10f;
+    private float avoidanceStrength = 30f;
     private float avoidanceRaycastLen = 15f; // obstacle avoidance detection distance
 
     private bool alignmentEnabled = false;
