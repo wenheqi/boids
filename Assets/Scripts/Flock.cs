@@ -5,6 +5,8 @@ using UnityEngine;
 public class Flock : MonoBehaviour
 {
     private List<Boid> boids = new List<Boid>();
+    private float lowerSpawnBound = -25.0f;
+    private float upperSpawnBound = 25.0f;
 
     // Start is called before the first frame update
     void Start()
@@ -15,9 +17,9 @@ public class Flock : MonoBehaviour
         {
             // generate a random position
             Vector3 position = new Vector3(
-                    Random.Range(0.0f, 50.0f),
-                    Random.Range(0.0f, 50.0f),
-                    Random.Range(0.0f, 50.0f)
+                    Random.Range(lowerSpawnBound, upperSpawnBound),
+                    Random.Range(lowerSpawnBound, upperSpawnBound),
+                    Random.Range(lowerSpawnBound, upperSpawnBound)
                 );
             Boid b = Boid.Create(prefab, position, Random.rotation);
             b.AvoidanceEnabled = true;
