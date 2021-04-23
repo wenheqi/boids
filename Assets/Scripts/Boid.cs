@@ -321,11 +321,9 @@ public class Boid : MonoBehaviour
         Vector3 acceleration = Vector3.ClampMagnitude(
             steeringD * forceCoef, maxForce) / mass;
 
-        //Vector3 deltaV = Vector3.ClampMagnitude(
-            //acceleration * Time.deltaTime, steeringV.magnitude);
-        Vector3 deltaV = acceleration * Time.deltaTime;
+        Vector3 deltaV = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringV.magnitude);
 
-        //Velocity = velocity + deltaV;
         velocity = Vector3.ClampMagnitude(velocity + deltaV, maxSpeed);
 
         Move();
@@ -443,7 +441,6 @@ public class Boid : MonoBehaviour
             Vector3 desiredVelocity = avgPosition - transform.position;
             desiredVelocity.Normalize();
             desiredVelocity *= maxSpeed;
-            // steering = desired_velocity - velocity
             steering = desiredVelocity - velocity;
         }
 
@@ -578,17 +575,10 @@ public class Boid : MonoBehaviour
         Vector3 acceleration = steeringForce / mass;
         // avoid overshooting
         Vector3 deltaVelocity = Vector3.zero;
-        if (avoidanceV != Vector3.zero)
-        {
-            deltaVelocity = acceleration * Time.deltaTime;
-        }
-        else
-        {
-            deltaVelocity = Vector3.ClampMagnitude(
-                acceleration * Time.deltaTime, steeringVelocity.magnitude);
-        }
 
-        // velocity = truncate(velocity + acceleration, max_speed)
+        deltaVelocity = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringVelocity.magnitude);
+
         velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, maxSpeed);
 
         Move();
@@ -601,17 +591,24 @@ public class Boid : MonoBehaviour
         Vector3 steering = Vector3.zero;
         if (Physics.Raycast(ray, out hit, avoidanceDist))
         {
-            if (hit.normal == -transform.forward)
+            if (hit.collider.gameObject.layer == 3) // only consider static object collisions, ignore other boids
             {
-                steering = transform.right * maxSpeed;
-            }
-            else
-            {
-                // normalized vector reflecting from hit surface
-                Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
-                // reflected ray vector from the boid vector around the normal surface vector
-                steering = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
-                steering = Vector3.Normalize(steering) * maxSpeed;
+                Debug.Log(hit.collider.name);
+                if (hit.normal == -transform.forward)
+                {
+                    steering = transform.right * maxSpeed;
+                }
+                else
+                {
+                    // normalized vector reflecting from hit surface
+                    steering = Vector3.Normalize(hit.normal); // using normal surface vector to change acceleration vector
+
+                    // reflected vector implementation
+                    //Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
+                    // reflected ray vector from the boid vector around the normal surface vector
+                    //steering = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
+                    //steering = Vector3.Normalize(steering) * maxSpeed;
+                }
             }
         }
         return steering;
