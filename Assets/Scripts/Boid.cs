@@ -9,6 +9,10 @@ public class Boid : MonoBehaviour
     private float maxForce = 27f;
     private Vector3 velocity = Vector3.forward; // world space velocity
 
+    private bool avoidanceEnabled = false;
+    private float avoidanceStrength = 25f;
+    private float avoidanceDist = 15f; // obstacle avoidance detection distance
+
     private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
     private float alignmentAngle = 180f; // in degrees
@@ -23,6 +27,7 @@ public class Boid : MonoBehaviour
     private float separationDist = 5.0f;
     private float separationAngle = 180f; // in degrees
     private float separationStrength = 12.0f;
+
 
     public static Boid Create(
         string prefabPath,
@@ -101,6 +106,52 @@ public class Boid : MonoBehaviour
         set
         {
             velocity = Vector3.ClampMagnitude(value, maxSpeed);
+        }
+    }
+
+    public bool AvoidanceEnabled
+    {
+        get
+        {
+            return avoidanceEnabled;
+        }
+        set
+        {
+            avoidanceEnabled = value;
+        }
+    }
+
+    public float AvoidanceDist
+    {
+        get
+        {
+            return avoidanceDist;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                avoidanceDist = 0;
+                return;
+            }
+            avoidanceDist = value;
+        }
+    }
+
+    public float AvoidanceStrength
+    {
+        get
+        {
+            return avoidanceStrength;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                avoidanceStrength = 0;
+                return;
+            }
+            avoidanceStrength = value;
         }
     }
 
@@ -273,7 +324,6 @@ public class Boid : MonoBehaviour
         Vector3 deltaV = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringV.magnitude);
 
-        //Velocity = velocity + deltaV;
         velocity = Vector3.ClampMagnitude(velocity + deltaV, maxSpeed);
 
         Move();
@@ -391,7 +441,6 @@ public class Boid : MonoBehaviour
             Vector3 desiredVelocity = avgPosition - transform.position;
             desiredVelocity.Normalize();
             desiredVelocity *= maxSpeed;
-            // steering = desired_velocity - velocity
             steering = desiredVelocity - velocity;
         }
 
@@ -468,9 +517,31 @@ public class Boid : MonoBehaviour
         Vector3 steeringVelocity = Vector3.zero;
         // steering force of alignemnt, cohesion and separation
         Vector3 steeringForce = Vector3.zero;
+        // avoidance vector not encapsulated due to needing in calculating delta velocity
+        Vector3 avoidanceV = Vector3.zero;
+
+        // desired avoidance steering velocity/direction
+        if (avoidanceEnabled)
+        {
+            avoidanceV = AvoidObstacle();
+            Vector3 avoidanceD = avoidanceV;
+            avoidanceD.Normalize();
+            steeringVelocity += avoidanceV;
+            steeringForce += avoidanceStrength * avoidanceD;
+        }
+
+        // desired separation steering velocity/direction
+        if (steeringForce.magnitude < maxForce && separationEnabled)
+        {
+            Vector3 separationV = Separate(flock);
+            Vector3 separationD = separationV;
+            separationD.Normalize();
+            steeringVelocity += separationV;
+            steeringForce += separationStrength * separationD;
+        }
 
         // desired alignment steering velocity/direction
-        if (alignmentEnabled)
+        if (steeringForce.magnitude < maxForce && alignmentEnabled)
         {
             Vector3 alignmentV = Align(flock);
             Vector3 alignmentD = alignmentV;
@@ -480,7 +551,7 @@ public class Boid : MonoBehaviour
         }
         
         // desired cohesion steering velocity/direction
-        if (cohesionEnabled)
+        if (steeringForce.magnitude < maxForce && cohesionEnabled)
         {
             Vector3 cohesionV = Cohere(flock);
             Vector3 cohesionD = cohesionV;
@@ -489,15 +560,6 @@ public class Boid : MonoBehaviour
             steeringForce += cohesionStrength * cohesionD;
         }
         
-        // desired separation steering velocity/direction
-        if (separationEnabled)
-        {
-            Vector3 separationV = Separate(flock);
-            Vector3 separationD = separationV;
-            separationD.Normalize();
-            steeringVelocity += separationV;
-            steeringForce += separationStrength * separationD;
-        }
 
         // steering_force = truncate (steering_direction, max_force)
         steeringForce = Vector3.ClampMagnitude(steeringForce, maxForce);
@@ -512,11 +574,54 @@ public class Boid : MonoBehaviour
         // acceleration = steering_force / mass
         Vector3 acceleration = steeringForce / mass;
         // avoid overshooting
-        Vector3 deltaVelocity = Vector3.ClampMagnitude(
+        Vector3 deltaVelocity = Vector3.zero;
+
+        deltaVelocity = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringVelocity.magnitude);
-        // velocity = truncate(velocity + acceleration, max_speed)
+
         velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, maxSpeed);
 
         Move();
+    }
+
+    public Vector3 AvoidObstacle()
+    {
+        Ray ray = new Ray(transform.position, transform.forward);
+        RaycastHit hit;
+        Vector3 steering = Vector3.zero;
+        if (Physics.Raycast(ray, out hit, avoidanceDist))
+        {
+            if (hit.collider.gameObject.layer == 3) // only consider static object collisions, ignore other boids
+            {
+                Debug.Log(hit.collider.name);
+                if (hit.normal == -transform.forward)
+                {
+                    steering = transform.right * maxSpeed;
+                }
+                else
+                {
+                    // normalized vector reflecting from hit surface
+                    steering = Vector3.Normalize(hit.normal); // using normal surface vector to change acceleration vector
+
+                    // reflected vector implementation
+                    //Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
+                    // reflected ray vector from the boid vector around the normal surface vector
+                    //steering = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
+                    //steering = Vector3.Normalize(steering) * maxSpeed;
+                }
+            }
+        }
+        return steering;
+    }
+
+    /*
+     * Returns the desired steering velocity
+     */
+    private Vector3 SteerAway(GameObject target)
+    {
+        Vector3 desiredD = target.transform.position - transform.position;
+        desiredD.Normalize();
+        Vector3 desiredV = desiredD * maxSpeed;
+        return desiredV - velocity;
     }
 }
