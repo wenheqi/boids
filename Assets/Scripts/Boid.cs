@@ -10,9 +10,8 @@ public class Boid : MonoBehaviour
     private Vector3 velocity = Vector3.forward; // world space velocity
 
     private bool avoidanceEnabled = false;
-    private float avoidanceDist = 10f;
-    private float avoidanceStrength = 10f;
-    private float avoidanceRaycastLen = 15f; // obstacle avoidance detection distance
+    private float avoidanceStrength = 25f;
+    private float avoidanceDist = 15f; // obstacle avoidance detection distance
 
     private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
@@ -153,23 +152,6 @@ public class Boid : MonoBehaviour
                 return;
             }
             avoidanceStrength = value;
-        }
-    }
-
-    public float AvoidanceRaycastLen
-    {
-        get
-        {
-            return avoidanceRaycastLen;
-        }
-        set
-        {
-            if (value < 0)
-            {
-                avoidanceRaycastLen = 0;
-                return;
-            }
-            avoidanceRaycastLen = value;
         }
     }
 
@@ -544,7 +526,7 @@ public class Boid : MonoBehaviour
         // desired avoidance steering velocity/direction
         if (avoidanceEnabled)
         {
-            avoidanceV = getRaycastVector();
+            avoidanceV = AvoidObstacle();
             Vector3 avoidanceD = avoidanceV;
             avoidanceD.Normalize();
             steeringVelocity += avoidanceV;
@@ -612,12 +594,12 @@ public class Boid : MonoBehaviour
         Move();
     }
 
-    public Vector3 getRaycastVector()
+    public Vector3 AvoidObstacle()
     {
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
         Vector3 steering = Vector3.zero;
-        if (Physics.Raycast(ray, out hit, avoidanceRaycastLen))
+        if (Physics.Raycast(ray, out hit, avoidanceDist))
         {
             if (hit.normal == -transform.forward)
             {
