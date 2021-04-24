@@ -26,6 +26,7 @@ public class Boid : MonoBehaviour
 
     private Vector3 goal = Vector3.zero;
     private bool goalSeekingEnabled = false;
+    private float goalSeekingAngle = 90f;
     private float goalSeekingStrength = 18.0f;
 
     public static Boid Create(
@@ -473,12 +474,22 @@ public class Boid : MonoBehaviour
 
     public Vector3 SeekGoal()
     {
-        return (goal - transform.position) * maxSpeed - velocity;
+
+        if (Vector3.Angle(transform.forward, goal - transform.position ) <= goalSeekingAngle)
+        {
+            return (goal - transform.position) * maxSpeed - velocity;
+            
+        }
+        return Vector3.zero;
     }
 
     private void SteerToSeekGoal()
     {
-        Steer(SeekGoal(), goalSeekingStrength);
+        Vector3 seekForce = SeekGoal();
+        if (seekForce != Vector3.zero)
+        {
+            Steer(SeekGoal(), goalSeekingStrength);
+        }
     }
 
     // Start is called before the first frame update
