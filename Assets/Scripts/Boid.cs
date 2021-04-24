@@ -28,6 +28,9 @@ public class Boid : MonoBehaviour
     private bool goalSeekingEnabled = false;
     private float goalSeekingStrength = 18.0f;
 
+    private bool bankingEnabled = false;
+    private float liftStregth = 10.0f;
+
     public static Boid Create(
         string prefabPath,
         Vector3 position,
@@ -281,6 +284,30 @@ public class Boid : MonoBehaviour
         }
     }
 
+    public bool BankingEnabled
+    {
+        get
+        {
+            return bankingEnabled;
+        }
+        set
+        {
+            bankingEnabled = value;
+        }
+    }
+
+    public float LiftStrength
+    {
+        get
+        {
+            return liftStregth;
+        }
+        set
+        {
+            liftStregth = value;
+        }
+    }
+
     public void Move()
     {
         transform.Translate(velocity * Time.deltaTime, Space.World);
@@ -292,11 +319,12 @@ public class Boid : MonoBehaviour
 
     private void Steer(Vector3 steeringV, float forceCoef)
     {
-        Vector3 steeringD = steeringV; // steering direction
-        steeringD.Normalize();
+        Vector3 steeringD = Vector3.Normalize(steeringV); // steering direction
 
-        Vector3 acceleration = Vector3.ClampMagnitude(
-            steeringD * forceCoef, maxForce) / mass;
+        Vector3 steeringF = Vector3.ClampMagnitude(
+            steeringD * forceCoef, maxForce);
+
+        Vector3 acceleration = steeringF / mass;
 
         Vector3 deltaV = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringV.magnitude);
@@ -304,7 +332,29 @@ public class Boid : MonoBehaviour
         //Velocity = velocity + deltaV;
         velocity = Vector3.ClampMagnitude(velocity + deltaV, maxSpeed);
 
-        Move();
+        // set new position
+        transform.Translate(velocity * Time.deltaTime, Space.World);
+        // set new orientation
+        if (velocity != Vector3.zero)
+        {
+            if (bankingEnabled)
+            {
+                // velocity is new forward
+                Vector3 oldUp = transform.up;
+                Vector3 newRight = Vector3.Normalize(
+                    Vector3.Cross(velocity, oldUp));
+                Vector3 newUp = Vector3.Normalize(
+                    Vector3.Cross(newRight, velocity));
+                newUp = Vector3.Normalize(
+                    newRight * Vector3.Dot(steeringF, newRight) +
+                    newUp * (mass * liftStregth));
+                transform.rotation = Quaternion.LookRotation(velocity, newUp);
+                return;
+            }
+
+            // look at the new forward direction
+            transform.rotation = Quaternion.LookRotation(velocity);
+        }
     }
 
     /*
@@ -564,6 +614,28 @@ public class Boid : MonoBehaviour
         // velocity = truncate(velocity + acceleration, max_speed)
         velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, maxSpeed);
 
-        Move();
+        // set new position
+        transform.Translate(velocity * Time.deltaTime, Space.World);
+        // set new orientation
+        if (velocity != Vector3.zero)
+        {
+            if (bankingEnabled)
+            {
+                // velocity is new forward
+                Vector3 oldUp = transform.up;
+                Vector3 newRight = Vector3.Normalize(
+                    Vector3.Cross(velocity, oldUp));
+                Vector3 newUp = Vector3.Normalize(
+                    Vector3.Cross(newRight, velocity));
+                newUp = Vector3.Normalize(
+                    newRight * Vector3.Dot(steeringForce, newRight) +
+                    newUp * (mass * liftStregth));
+                transform.rotation = Quaternion.LookRotation(velocity, newUp);
+                return;
+            }
+
+            // look at the new forward direction
+            transform.rotation = Quaternion.LookRotation(velocity);
+        }
     }
 }
