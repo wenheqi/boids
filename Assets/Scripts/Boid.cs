@@ -581,6 +581,22 @@ public class Boid : MonoBehaviour
 
         velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, maxSpeed);
 
+        // normalize to effective speed range of boids
+        //float fractionOfMaxVelocity = velocity.magnitude / maxSpeed;
+        float normVelocity = (velocity.magnitude - 4.0f) / (6.0f - 4.0f);
+        if (normVelocity < 0)
+        {
+            normVelocity = 0;
+        }
+
+        // set color of trail based on max velocity (higher speed = brighter)
+        // changes boid body color based on current velocity (more teal = faster, more red = slower)
+        GetComponent<Renderer>().material.SetColor("_Color", new Color(0.7f, normVelocity, normVelocity, 1));
+
+        // changes trail color in same manner
+        GetComponent<TrailRenderer>().material.SetColor("_Color", new Color(0.7f, normVelocity, normVelocity, 1));
+
+
         Move();
     }
 
