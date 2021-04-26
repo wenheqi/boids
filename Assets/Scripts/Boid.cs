@@ -717,7 +717,13 @@ public class Boid : MonoBehaviour
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, avoidDist, obstacleLayerMask))
+        if (Physics.SphereCast(
+            transform.position,
+            boundingRadius,
+            transform.forward,
+            out hit,
+            avoidDist,
+            obstacleLayerMask))
         {
             Debug.DrawLine(ray.origin, hit.point, Color.red);
             float dist = Vector3.Distance(transform.position, hit.point);
@@ -728,6 +734,27 @@ public class Boid : MonoBehaviour
             steering = hit.normal * maxSpeed * avoidDist/dist - velocity;
         }
         return steering;
+    }
+
+    private Vector3 AvoidSpecularReflection()
+    {
+        Vector3 steering = Vector3.zero;
+        RaycastHit hit;
+        if (Physics.SphereCast(
+            transform.position,
+            boundingRadius,
+            transform.forward,
+            out hit,
+            avoidDist,
+            obstacleLayerMask))
+        {
+            Vector3 reflection = Vector3.Normalize(
+                transform.forward +
+                hit.normal * Mathf.Abs(
+                    Vector3.Dot(transform.forward, hit.normal) * 2));
+            steering = reflection * maxSpeed - velocity;
+        }
+            return steering;
     }
 
     private Vector3 AvoidAlongRaycast()
