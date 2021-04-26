@@ -822,6 +822,11 @@ public class Boid : MonoBehaviour
             }
         }
 
+        if (avoidingObstacle)
+        {
+            goto Move;
+        }
+
         // desired separation steering velocity/direction
         if (separationEnabled)
         {
@@ -830,11 +835,6 @@ public class Boid : MonoBehaviour
             separationD.Normalize();
             steeringVelocity += separationV;
             steeringForce += separationStrength * separationD;
-        }
-
-        if (avoidingObstacle)
-        {
-            goto Move;
         }
 
         // desired alignment steering velocity/direction
