@@ -24,10 +24,10 @@ public class Boid : MonoBehaviour
     private float separationAngle = 180f; // in degrees
     private float separationStrength = 20.0f;
 
-    private Vector3 goal = Vector3.zero;
+    public List<Vector3> goalList;
     private bool goalSeekingEnabled = false;
-    private float goalSeekingAngle = 90f;
-    private float goalSeekingStrength = 18.0f;
+    private float goalSeekingAngle = 150f;
+    private float goalSeekingStrength = 30.0f;
 
     public static Boid Create(
         string prefabPath,
@@ -44,6 +44,14 @@ public class Boid : MonoBehaviour
         Quaternion rotation)
     {
         return Instantiate(prefab, position, rotation);
+    }
+
+    public void CreateGoalList(List<Vector3> goals)
+    {
+        foreach (Vector3 goal in goals)
+        {
+            goalList.Add(goal);
+        }
     }
 
     public float Mass
@@ -258,16 +266,13 @@ public class Boid : MonoBehaviour
         }
     }
 
-    public Vector3 Goal
+    public List<Vector3> Goal
     {
         get
         {
-            return goal;
+            return goalList;
         }
-        set
-        {
-            goal = value;
-        }
+        set => CreateGoalList(value);
     }
 
     public bool GoalSeekingEnabled
@@ -474,11 +479,14 @@ public class Boid : MonoBehaviour
 
     public Vector3 SeekGoal()
     {
-
-        if (Vector3.Angle(transform.forward, goal - transform.position ) <= goalSeekingAngle)
+        foreach (Vector3 goal in goalList)
         {
-            return (goal - transform.position) * maxSpeed - velocity;
-            
+            Vector3 closestGoal = FindClosestGoal();
+            Debug.Log(closestGoal);
+            if (Vector3.Angle(transform.forward, closestGoal - transform.position ) <= goalSeekingAngle)
+            {
+                return (closestGoal - transform.position) * maxSpeed - velocity;
+            }
         }
         return Vector3.zero;
     }
@@ -490,6 +498,24 @@ public class Boid : MonoBehaviour
         {
             Steer(SeekGoal(), goalSeekingStrength);
         }
+    }
+
+    private Vector3 FindClosestGoal()
+    {
+        float minDist = float.PositiveInfinity;
+        int minIdx = -1;
+        //foreach (Vector3 goal in goalList)
+        for (int i = 0; i < goalList.Count; i++)
+        {
+            float dist = Vector3.Distance(transform.position, goalList[i]);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                minIdx = i;
+            }
+        }
+
+        return goalList[minIdx];
     }
 
     // Start is called before the first frame update
@@ -518,8 +544,17 @@ public class Boid : MonoBehaviour
         // steering force of alignemnt, cohesion and separation
         Vector3 steeringForce = Vector3.zero;
 
+        if (goalSeekingEnabled)
+        {
+            Vector3 goalSeekingV = SeekGoal();
+            Vector3 goalSeekingD = goalSeekingV;
+            goalSeekingD.Normalize();
+            steeringVelocity += goalSeekingV;
+            steeringForce += goalSeekingStrength * goalSeekingD;
+        }
+
         // desired alignment steering velocity/direction
-        if (alignmentEnabled)
+        if (steeringForce.magnitude < maxForce && alignmentEnabled)
         {
             Vector3 alignmentV = Align(flock);
             Vector3 alignmentD = alignmentV;
@@ -529,7 +564,7 @@ public class Boid : MonoBehaviour
         }
         
         // desired cohesion steering velocity/direction
-        if (cohesionEnabled)
+        if (steeringForce.magnitude < maxForce && cohesionEnabled)
         {
             Vector3 cohesionV = Cohere(flock);
             Vector3 cohesionD = cohesionV;
@@ -539,22 +574,13 @@ public class Boid : MonoBehaviour
         }
         
         // desired separation steering velocity/direction
-        if (separationEnabled)
+        if (steeringForce.magnitude < maxForce && separationEnabled)
         {
             Vector3 separationV = Separate(flock);
             Vector3 separationD = separationV;
             separationD.Normalize();
             steeringVelocity += separationV;
             steeringForce += separationStrength * separationD;
-        }
-
-        if (goalSeekingEnabled)
-        {
-            Vector3 goalSeekingV = SeekGoal();
-            Vector3 goalSeekingD = goalSeekingV;
-            goalSeekingD.Normalize();
-            steeringVelocity += goalSeekingV;
-            steeringForce += goalSeekingStrength * goalSeekingD;
         }
 
         // steering_force = truncate (steering_direction, max_force)
