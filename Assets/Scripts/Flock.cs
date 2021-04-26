@@ -25,6 +25,7 @@ public class Flock : MonoBehaviour
             b.SeparationEnabled = true;
             b.GoalSeekingEnabled = true;
             b.Goal = new Vector3(-10f, 10f, -10f);
+            b.BankingEnabled = true;
             boids.Add(b);
         }
     }
