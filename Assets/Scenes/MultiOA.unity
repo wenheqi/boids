@@ -817,8 +817,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2382e59f6a80b48c0802ef6c223bd24f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 5
-  maxForce: 10
+  maxSpeed: 7.8
+  maxForce: 100
   alignmentEnabled: 1
   alignmentDist: 2
   alignmentStrength: 5
@@ -833,7 +833,7 @@ MonoBehaviour:
   separationAngle: 180
   avoidEnabled: 1
   avoidDist: 3
-  avoidStrength: 9
+  avoidStrength: 38
   avoidAngle: 180
 --- !u!4 &705937598
 Transform:
