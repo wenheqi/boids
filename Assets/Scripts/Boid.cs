@@ -716,7 +716,7 @@ public class Boid : MonoBehaviour
             //{
             //    Vector3 dir = transform.TransformDirection(rayDirections[i]);
             //    ray = new Ray(transform.position, dir);
-            //    if (!Physics.SphereCast(ray, 0.27f, avoidDist, layerMask))
+            //    if (!Physics.SphereCast(ray, 0.33f, avoidDist, layerMask))
             //    {
             //        return dir * maxSpeed - velocity;
             //    }
@@ -741,7 +741,7 @@ public class Boid : MonoBehaviour
                                         transform.forward) *
                                      newBaseDir;
                     ray.direction = newDir;
-                    if (Physics.Raycast(ray, out hit, avoidDist, layerMask))
+                    if (Physics.SphereCast(transform.position, .33f, newDir, out hit, avoidDist, layerMask))
                     {
                         // still hit
                         Debug.DrawLine(ray.origin, hit.point, Color.red);
@@ -912,6 +912,8 @@ public class Boid : MonoBehaviour
 
     //public void OnDrawGizmos()
     //{
+    //    //Gizmos.color = Color.cyan;
+    //    //Gizmos.DrawSphere(transform.position, 0.33f);
     //    // 2D
     //    //Gizmos.color = Color.green;
     //    //for (int i = 0; i <= numAvoidRays; i++)
@@ -958,8 +960,16 @@ public class Boid : MonoBehaviour
 
     private bool isGoingToCollide()
     {
-        Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
+        if (Physics.SphereCast(transform.position, .33f, transform.forward, out hit, avoidDist, layerMask))
+        {
+            return true;
+        }
+        else { }
+        return false;
+
+        Ray ray = new Ray(transform.position, transform.forward);
+        //RaycastHit hit;
 
         if (Physics.Raycast(ray, out hit, avoidDist, layerMask))
         {
