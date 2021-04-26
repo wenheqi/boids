@@ -21,6 +21,7 @@ public class BinLattice<T>
         numBinsInOneLayer = numBinsInOneRow * numBinsInOneRow;
         bins = new Bin<T>[(int)Mathf.Pow(this.numBinsInOneRow, 3f)];
         binEdgeLen = this.edgeLen / this.numBinsInOneRow;
+        float offset = this.edgeLen / 2;
 
         for (int y = 0; y < this.numBinsInOneRow; y++)
         {
@@ -28,9 +29,9 @@ public class BinLattice<T>
             {
                 for (int x = 0; x < this.numBinsInOneRow; x++)
                 {
-                    Bin<T> bin = new Bin<T>(new Vector3(x * binEdgeLen,
-                                                y * binEdgeLen,
-                                                z * binEdgeLen),
+                    Bin<T> bin = new Bin<T>(new Vector3(x * binEdgeLen - offset,
+                                                y * binEdgeLen - offset,
+                                                z * binEdgeLen - offset),
                                                 binEdgeLen);
                     bins[x +
                          y * numBinsInOneLayer +

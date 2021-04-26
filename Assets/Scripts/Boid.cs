@@ -20,13 +20,13 @@ public class Boid : MonoBehaviour
     private float cohesionStrength = 15.0f;
 
     private bool separationEnabled = false;
-    private float separationDist = 5.0f;
+    private float separationDist = 7.0f;
     private float separationAngle = 180f; // in degrees
     private float separationStrength = 20.0f;
 
     public List<Vector3> goalList;
     private bool goalSeekingEnabled = false;
-    private float goalSeekingAngle = 150f;
+    private float goalSeekingAngle = 130.0f;
     private float goalSeekingStrength = 30.0f;
 
     public static Boid Create(
@@ -377,10 +377,11 @@ public class Boid : MonoBehaviour
 
     public float GetPerceptionDistance()
     {
-        return Mathf.Max(
-                Mathf.Max(alignmentDist, cohesionDist),
-                separationDist
-            );
+        return 25.0f;
+        //return Mathf.Max(
+                //Mathf.Max(alignmentDist, cohesionDist),
+                //separationDist
+            //);
     }
 
     /*
@@ -388,7 +389,6 @@ public class Boid : MonoBehaviour
      * 
      * Reference:
      * Reynolds, C. W. (1999) Steering Behaviors For Autonomous Characters, in 
-     * the proceedings of Game Developers Conference 1999 held in San Jose, 
      * California. Miller Freeman Game Group, San Francisco, California. Pages 
      * 763-782.
      * 
@@ -485,12 +485,20 @@ public class Boid : MonoBehaviour
         Steer(Separate(flockmates), separationStrength);
     }
 
-    public Vector3 SeekGoal()
+    public Vector3 SeekGoal(List<Vector3> nearbyGoalObjects)
     {
-        foreach (Vector3 goal in goalList)
+        /*
+        if (nearbyGoalObjects.Count > 0)
         {
-            Vector3 closestGoal = FindClosestGoal();
-            Debug.Log(closestGoal);
+            //return Vector3.zero;
+            return nearbyGoalObjects[0];
+        }
+        return Vector3.zero;
+        */
+        foreach (Vector3 goal in nearbyGoalObjects)
+        {
+            Vector3 closestGoal = FindClosestGoal(nearbyGoalObjects);
+            //Debug.Log(closestGoal);
             if (Vector3.Angle(transform.forward, closestGoal - transform.position) <= goalSeekingAngle)
             {
                 return (closestGoal - transform.position) * maxSpeed - velocity;
@@ -499,6 +507,7 @@ public class Boid : MonoBehaviour
         return Vector3.zero;
     }
 
+    /*
     private void SteerToSeekGoal()
     {
         Vector3 seekForce = SeekGoal();
@@ -507,13 +516,14 @@ public class Boid : MonoBehaviour
             Steer(SeekGoal(), goalSeekingStrength);
         }
     }
+    */
 
-    private Vector3 FindClosestGoal()
+    private Vector3 FindClosestGoal(List<Vector3> nearbyGoalObjects)
     {
         float minDist = float.PositiveInfinity;
         int minIdx = -1;
         //foreach (Vector3 goal in goalList)
-        for (int i = 0; i < goalList.Count; i++)
+        for (int i = 0; i < nearbyGoalObjects.Count; i++)
         {
             float dist = Vector3.Distance(transform.position, goalList[i]);
             if (dist < minDist)
@@ -523,7 +533,7 @@ public class Boid : MonoBehaviour
             }
         }
 
-        return goalList[minIdx];
+        return nearbyGoalObjects[minIdx];
     }
 
     // Start is called before the first frame update
@@ -545,7 +555,7 @@ public class Boid : MonoBehaviour
     /*
      * Move based on Craig Reynolds' three rules
      */
-    public void MoveInFlock(List<BoidProperty> flock)
+    public void MoveInFlock(List<BoidProperty> flock, List<Vector3> nearestSeekObjects)
     {
         // steering velocity of alignemnt, cohesion and separation
         Vector3 steeringVelocity = Vector3.zero;
@@ -554,7 +564,7 @@ public class Boid : MonoBehaviour
 
         if (goalSeekingEnabled)
         {
-            Vector3 goalSeekingV = SeekGoal();
+            Vector3 goalSeekingV = SeekGoal(nearestSeekObjects);
             Vector3 goalSeekingD = goalSeekingV;
             goalSeekingD.Normalize();
             steeringVelocity += goalSeekingV;
