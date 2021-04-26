@@ -35,10 +35,10 @@ public class Boid : MonoBehaviour
     private float avoidDist = 5.0f;
     private float avoidAngle = 180f; // angle boid can escape, in degree
     private float avoidStrength = 15f;
-    private int numAvoidRays = 20;
-    private float fov = 3f; // in degree
 
-    private int layerMask = 1 << 6;
+    private float boundingRadius = 0.33f; // .33 for fish boids
+
+    private int obstacleLayerMask = 1 << 6;
 
     public static Boid Create(
         string prefabPath,
@@ -441,6 +441,35 @@ public class Boid : MonoBehaviour
         }
     }
 
+    public float BoundingRadius
+    {
+        get
+        {
+            return boundingRadius;
+        }
+        set
+        {
+            if (value <= 0)
+            {
+                boundingRadius = 0.01f;
+                return;
+            }
+            boundingRadius = value;
+        }
+    }
+
+    public int ObstacleLayerMask
+    {
+        get
+        {
+            return obstacleLayerMask;
+        }
+        set
+        {
+            obstacleLayerMask = value;
+        }
+    }
+
     public void Move()
     {
         transform.Translate(velocity * Time.deltaTime, Space.World);
@@ -671,7 +700,7 @@ public class Boid : MonoBehaviour
         Ray ray = new Ray(transform.position, transform.forward);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit, avoidDist, layerMask))
+        if (Physics.Raycast(ray, out hit, avoidDist, obstacleLayerMask))
         {
             Debug.DrawLine(ray.origin, hit.point, Color.red);
             float dist = Vector3.Distance(transform.position, hit.point);
@@ -692,47 +721,13 @@ public class Boid : MonoBehaviour
 
         if (isGoingToCollide())
         {
-            //int numViewDirections = 300;
-            //Vector3[] directions = new Vector3[numViewDirections];
-
-            //float goldenRatio = (1 + Mathf.Sqrt(5)) / 2;
-            //float angleIncrement = Mathf.PI * 2 * goldenRatio;
-
-            //for (int i = 0; i < numViewDirections; i++)
-            //{
-            //    float t = (float)i / numViewDirections;
-            //    float inclination = Mathf.Acos(1 - 2 * t);
-            //    float azimuth = angleIncrement * i;
-
-            //    float x = Mathf.Sin(inclination) * Mathf.Cos(azimuth);
-            //    float y = Mathf.Sin(inclination) * Mathf.Sin(azimuth);
-            //    float z = Mathf.Cos(inclination);
-            //    directions[i] = new Vector3(x, y, z);
-            //}
-
-            //Vector3[] rayDirections = directions;
-
-            //for (int i = 0; i < rayDirections.Length; i++)
-            //{
-            //    Vector3 dir = transform.TransformDirection(rayDirections[i]);
-            //    ray = new Ray(transform.position, dir);
-            //    if (!Physics.SphereCast(ray, 0.33f, avoidDist, layerMask))
-            //    {
-            //        return dir * maxSpeed - velocity;
-            //    }
-            //}
-
-            //return Vector3.zero;
-
-
             // find a direction to avoid obstacle
-            for (float i = fov / 2 + 5; i <= avoidAngle; i += 5)
+            for (float i = 5; i <= avoidAngle; i += 5)
             {
                 Vector3 newBaseDir = Quaternion.AngleAxis(
                                         i,
                                         transform.up) *
                                      transform.forward;
-                Gizmos.color = Color.Lerp(Color.yellow, Color.yellow, i / avoidAngle);
                 // rotate this base direction around forward axis for 360 degrees
                 for (int j = 0; j < 360; j += 5)
                 {
@@ -741,14 +736,23 @@ public class Boid : MonoBehaviour
                                         transform.forward) *
                                      newBaseDir;
                     ray.direction = newDir;
-                    if (Physics.SphereCast(transform.position, .33f, newDir, out hit, avoidDist, layerMask))
+                    if (Physics.SphereCast(
+                        transform.position,
+                        boundingRadius,
+                        newDir,
+                        out hit,
+                        avoidDist,
+                        obstacleLayerMask))
                     {
                         // still hit
                         Debug.DrawLine(ray.origin, hit.point, Color.red);
                     }
                     else
                     {
-                        Debug.DrawLine(ray.origin, ray.origin + ray.direction * avoidDist, Color.green);
+                        Debug.DrawLine(
+                            ray.origin,
+                            ray.origin + ray.direction * avoidDist,
+                            Color.green);
                         steering = ray.direction * maxSpeed - velocity;
                         return steering;
                     }
@@ -759,7 +763,10 @@ public class Boid : MonoBehaviour
             return -transform.forward * maxSpeed - velocity;
         }
         // safe
-        Debug.DrawLine(ray.origin, ray.origin + ray.direction * avoidDist, Color.green);
+        Debug.DrawLine(
+            ray.origin,
+            ray.origin + ray.direction * avoidDist,
+            Color.green);
         return steering;
     }
 
@@ -773,7 +780,8 @@ public class Boid : MonoBehaviour
         Vector3 steeringV = AvoidObstacle(); // steering velocity
         // if there is no steering, i.e. boid's direction remains the same
         // try to accelerate until it reaches max speed
-        steeringV = steeringV == Vector3.zero ? transform.forward * maxSpeed : steeringV;
+        steeringV = steeringV == Vector3.zero ?
+            transform.forward * maxSpeed : steeringV;
         Vector3 steeringD = steeringV; // steering direction
         steeringD.Normalize();
         Vector3 acceleration = avoidStrength * steeringD / mass;
@@ -913,7 +921,7 @@ public class Boid : MonoBehaviour
     //public void OnDrawGizmos()
     //{
     //    //Gizmos.color = Color.cyan;
-    //    //Gizmos.DrawSphere(transform.position, 0.33f);
+    //    //Gizmos.DrawSphere(transform.position, boundingRadius);
     //    // 2D
     //    //Gizmos.color = Color.green;
     //    //for (int i = 0; i <= numAvoidRays; i++)
@@ -961,50 +969,17 @@ public class Boid : MonoBehaviour
     private bool isGoingToCollide()
     {
         RaycastHit hit;
-        if (Physics.SphereCast(transform.position, .33f, transform.forward, out hit, avoidDist, layerMask))
+        if (Physics.SphereCast(
+            transform.position,
+            boundingRadius,
+            transform.forward,
+            out hit,
+            avoidDist,
+            obstacleLayerMask))
         {
             return true;
         }
-        else { }
-        return false;
-
-        Ray ray = new Ray(transform.position, transform.forward);
-        //RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, avoidDist, layerMask))
-        {
-            Debug.DrawLine(ray.origin, hit.point, Color.red);
-            return true;
-        }
-
-        float halfFov = fov / 2;
-
-        for (float i = 1; i <= halfFov; i++)
-        {
-            Vector3 newBaseDir = Quaternion.AngleAxis(
-                                    i,
-                                    transform.up) *
-                                 transform.forward;
-            Gizmos.color = Color.Lerp(Color.blue, Color.magenta, i / halfFov);
-            // rotate this base direction around forward axis for 360 degrees
-            for (float j = 0; j < 360; j += 5)
-            {
-                Vector3 newDir = Quaternion.AngleAxis(
-                                    j,
-                                    transform.forward) *
-                                 newBaseDir;
-                ray.direction = newDir;
-                if (Physics.Raycast(ray, out hit, avoidDist, layerMask))
-                {
-                    Debug.DrawLine(ray.origin, hit.point, Color.red);
-                    return true;
-                }
-                else
-                {
-                    Debug.DrawLine(ray.origin, ray.origin + ray.direction * avoidDist, Color.green);
-                }
-            }
-        }
+        
         return false;
     }
 }
