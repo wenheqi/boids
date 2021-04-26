@@ -375,6 +375,14 @@ public class Boid : MonoBehaviour
         Steer(Align(flockmates), alignmentStrength);
     }
 
+    public float GetPerceptionDistance()
+    {
+        return Mathf.Max(
+                Mathf.Max(alignmentDist, cohesionDist),
+                separationDist
+            );
+    }
+
     /*
      * Cohesion: steer to move toward the average position of local flockmates
      * 
@@ -483,7 +491,7 @@ public class Boid : MonoBehaviour
         {
             Vector3 closestGoal = FindClosestGoal();
             Debug.Log(closestGoal);
-            if (Vector3.Angle(transform.forward, closestGoal - transform.position ) <= goalSeekingAngle)
+            if (Vector3.Angle(transform.forward, closestGoal - transform.position) <= goalSeekingAngle)
             {
                 return (closestGoal - transform.position) * maxSpeed - velocity;
             }
@@ -562,7 +570,7 @@ public class Boid : MonoBehaviour
             steeringVelocity += alignmentV;
             steeringForce += alignmentStrength * alignmentD;
         }
-        
+
         // desired cohesion steering velocity/direction
         if (steeringForce.magnitude < maxForce && cohesionEnabled)
         {
@@ -572,7 +580,7 @@ public class Boid : MonoBehaviour
             steeringVelocity += cohesionV;
             steeringForce += cohesionStrength * cohesionD;
         }
-        
+
         // desired separation steering velocity/direction
         if (steeringForce.magnitude < maxForce && separationEnabled)
         {
