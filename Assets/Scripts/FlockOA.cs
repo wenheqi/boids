@@ -7,7 +7,7 @@ public class FlockOA : MonoBehaviour
     [Range(1f, 100f)]
     public float maxSpeed = 5f;
     [Range(1f, 100f)]
-    public float maxForce = 10f;
+    public float maxForce = 100f;
     public bool alignmentEnabled = true;
     [Range(1f, 100f)]
     public float alignmentDist = 2f;
@@ -33,7 +33,7 @@ public class FlockOA : MonoBehaviour
     [Range(1f, 100f)]
     public float avoidDist = 3f;
     [Range(1f, 100f)]
-    public float avoidStrength = 9f;
+    public float avoidStrength = 35f;
     [Range(1f, 180f)]
     public float avoidAngle = 180f;
 
@@ -42,9 +42,9 @@ public class FlockOA : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        Boid prefab = Resources.Load<Boid>("Prefabs/CubeParticle");
+        Boid prefab = Resources.Load<Boid>("Prefabs/Fish");
 
-        for (int i = 0; i < 20; i++)
+        for (int i = 0; i < 100; i++)
         {
             // generate a random position
             Vector3 position = new Vector3(
