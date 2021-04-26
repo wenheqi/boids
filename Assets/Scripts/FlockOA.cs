@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class FlockOA : MonoBehaviour
 {
+    [Range(0.1f, 10f)]
+    public float boundingRadius = 0.33f;
     [Range(1f, 100f)]
     public float maxSpeed = 5f;
     [Range(1f, 100f)]
@@ -36,6 +38,10 @@ public class FlockOA : MonoBehaviour
     public float avoidStrength = 35f;
     [Range(1f, 180f)]
     public float avoidAngle = 180f;
+    public bool goalSeekingEnabled = true;
+    public Vector3 goal = Vector3.zero;
+    [Range(1f, 100f)]
+    public float goalSeekingStrength = 18.0f;
 
     private List<Boid> boids = new List<Boid>();
 
@@ -49,11 +55,12 @@ public class FlockOA : MonoBehaviour
             // generate a random position
             Vector3 position = new Vector3(
                     Random.Range(-3f, 3f),
-                    Random.Range(3f, 7f),
+                    Random.Range(3f, 5f),
                     Random.Range(-3f, 3f)
                 );
             Boid b = Boid.Create(prefab, position, Random.rotation);
             b.gameObject.layer = 7; // set to boids layer
+            b.BoundingRadius = boundingRadius;
             b.MaxSpeed = maxSpeed;
             b.MaxForce = maxForce;
             b.AlignmentEnabled = alignmentEnabled;
@@ -72,6 +79,9 @@ public class FlockOA : MonoBehaviour
             b.AvoidDist = avoidDist;
             b.AvoidStrength = avoidStrength;
             b.AvoidAngle = avoidAngle;
+            b.GoalSeekingEnabled = goalSeekingEnabled;
+            b.Goal = goal;
+            b.GoalSeekingStrength = goalSeekingStrength;
             boids.Add(b);
         }
     }
@@ -84,6 +94,7 @@ public class FlockOA : MonoBehaviour
         // take a screenshot of each boid's position, rotation, etc.
         foreach (Boid b in boids)
         {
+            b.BoundingRadius = boundingRadius;
             b.MaxSpeed = maxSpeed;
             b.MaxForce = maxForce;
             b.AlignmentEnabled = alignmentEnabled;
@@ -102,6 +113,9 @@ public class FlockOA : MonoBehaviour
             b.AvoidDist = avoidDist;
             b.AvoidStrength = avoidStrength;
             b.AvoidAngle = avoidAngle;
+            b.GoalSeekingEnabled = goalSeekingEnabled;
+            b.Goal = goal;
+            b.GoalSeekingStrength = goalSeekingStrength;
             transformList.Add(new BoidProperty(b));
         }
 
