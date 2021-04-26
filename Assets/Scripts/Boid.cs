@@ -359,6 +359,23 @@ public class Boid : MonoBehaviour
         }
     }
 
+    public float GoalSeekingStrength
+    {
+        get
+        {
+            return goalSeekingStrength;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                goalSeekingStrength = 0;
+                return;
+            }
+            goalSeekingStrength = value;
+        }
+    }
+
     public bool BankingEnabled
     {
         get
