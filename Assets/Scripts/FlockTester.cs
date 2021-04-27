@@ -14,6 +14,7 @@ public class FlockTester : MonoBehaviour
     {
         boids = new List<Boid>();
         sphereTargets = GenerateSpherePoints();
+        int halfNumOfBoids = 4000;
 
         foreach (Vector3 target in sphereTargets)
         {
@@ -22,7 +23,7 @@ public class FlockTester : MonoBehaviour
         }
         Boid prefab = Resources.Load<Boid>("Prefabs/Fish");
 
-        for (int i = 0; i < 500; i++)
+        for (int i = 0; i < halfNumOfBoids; i++)
         {
             // generate a random position
             //Vector3 position = new Vector3(
@@ -31,14 +32,38 @@ public class FlockTester : MonoBehaviour
                     //Random.Range(-25.0f, 25.0f)
                 //);
             Vector3 position = new Vector3(
-                    Random.Range(-130.0f, -100.0f),
-                    Random.Range(-15.0f, 15.0f),
-                    Random.Range(-15.0f, 15.0f)
+                    Random.Range(-80.0f, -30.0f) + 25.0f,
+                    Random.Range(0.0f, 35.0f) + 25.0f,
+                    Random.Range(-5.0f, 25.0f) + 25.0f
                 );
             //Boid b = Boid.Create(prefab, position, Random.rotation);
             Boid b = Boid.Create(prefab, position, Quaternion.LookRotation(new Vector3(1,0,0)));
             b.AlignmentEnabled = true;
-            b.CohesionEnabled = true;
+            b.CohesionEnabled = false;
+            b.SeparationEnabled = true;
+            b.GoalSeekingEnabled = true;
+            b.CreateGoalList(sphereTargets);
+            boids.Add(b);
+            //boids.Add(Instantiate(boid, position, Random.rotation));
+        }
+
+        for (int i = 0; i < halfNumOfBoids; i++)
+        {
+            // generate a random position
+            //Vector3 position = new Vector3(
+                    //Random.Range(-25.0f, 25.0f),
+                    //Random.Range(-25.0f, 25.0f),
+                    //Random.Range(-25.0f, 25.0f)
+                //);
+            Vector3 position = new Vector3(
+                    Random.Range(30.0f, 80.0f) + 25.0f,
+                    Random.Range(-55.0f, -10.0f) + 25.0f,
+                    Random.Range(-15.0f, 15.0f) + 25.0f
+                );
+            //Boid b = Boid.Create(prefab, position, Random.rotation);
+            Boid b = Boid.Create(prefab, position, Quaternion.LookRotation(new Vector3(-1,0,0)));
+            b.AlignmentEnabled = true;
+            b.CohesionEnabled = false;
             b.SeparationEnabled = true;
             b.GoalSeekingEnabled = true;
             b.CreateGoalList(sphereTargets);
@@ -53,7 +78,7 @@ public class FlockTester : MonoBehaviour
     {
         List<BoidProperty> transformList = new List<BoidProperty>();
         boidsDb = new BinLattice<Vector3>(
-                                                Vector3.zero,
+                                                new Vector3(0f, 0f, 0f),
                                                 120f,
                                                 20);
 
@@ -104,13 +129,14 @@ public class FlockTester : MonoBehaviour
 
     List<Vector3> GenerateSpherePoints()
     {
-        float sphereRadius = 50.0f;
+        float sphereRadius = 40.0f;
         List<Vector3> generatedPoints = new List<Vector3>();
-        for (int i = 0; i < 1000; i++)
+        for (int i = 0; i < 700; i++)
         {
             Vector3 newP = new Vector3(GenerateGaussianRandom(1.0f, 10.0f), GenerateGaussianRandom(1.0f, 10.0f), GenerateGaussianRandom(1.0f, 10.0f));
             newP = Vector3.Normalize(newP);
             newP *= sphereRadius;
+            newP += new Vector3(20.0f, 20.0f, 20.0f);
             generatedPoints.Add(newP);
         }
         return generatedPoints;

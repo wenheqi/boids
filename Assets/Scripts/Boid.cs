@@ -5,24 +5,24 @@ using UnityEngine;
 public class Boid : MonoBehaviour
 {
     private float mass = 1;
-    private float maxSpeed = 20f;
-    private float maxForce = 100f;
+    private float maxSpeed = 17f;
+    private float maxForce = 90f;
     private Vector3 velocity = Vector3.forward; // world space velocity
 
     private bool alignmentEnabled = false;
-    private float alignmentDist = 7.5f;
+    private float alignmentDist = 4.5f;
     private float alignmentAngle = 180f; // in degrees
     private float alignmentStrength = 15.0f;
 
     private bool cohesionEnabled = false;
-    private float cohesionDist = 9.0f;
+    private float cohesionDist = 4.0f;
     private float cohesionAngle = 180f; // in degrees
-    private float cohesionStrength = 15.0f;
+    private float cohesionStrength = 10.0f;
 
     private bool separationEnabled = false;
-    private float separationDist = 7.0f;
+    private float separationDist = 5.0f;
     private float separationAngle = 180f; // in degrees
-    private float separationStrength = 20.0f;
+    private float separationStrength = 15.0f;
 
     public List<Vector3> goalList;
     private bool goalSeekingEnabled = false;
