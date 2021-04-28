@@ -5,29 +5,40 @@ using UnityEngine;
 public class Boid : MonoBehaviour
 {
     private float mass = 1;
-    private float maxSpeed = 9f;
-    private float maxForce = 27f;
+    private float maxSpeed = 20f;
+    private float maxForce = 100f;
     private Vector3 velocity = Vector3.forward; // world space velocity
-
-    private bool avoidanceEnabled = false;
-    private float avoidanceStrength = 25f;
-    private float avoidanceDist = 15f; // obstacle avoidance detection distance
 
     private bool alignmentEnabled = false;
     private float alignmentDist = 7.5f;
     private float alignmentAngle = 180f; // in degrees
-    private float alignmentStrength = 8.0f;
+    private float alignmentStrength = 15.0f;
 
     private bool cohesionEnabled = false;
     private float cohesionDist = 9.0f;
     private float cohesionAngle = 180f; // in degrees
-    private float cohesionStrength = 8.0f;
+    private float cohesionStrength = 15.0f;
 
     private bool separationEnabled = false;
     private float separationDist = 5.0f;
     private float separationAngle = 180f; // in degrees
-    private float separationStrength = 12.0f;
+    private float separationStrength = 20.0f;
 
+    private Vector3 goal = Vector3.zero;
+    private bool goalSeekingEnabled = false;
+    private float goalSeekingStrength = 18.0f;
+
+    private bool bankingEnabled = false;
+    private float liftStregth = 10.0f;
+
+    private bool avoidEnabled = false;
+    private float avoidDist = 5.0f;
+    private float avoidAngle = 180f; // angle boid can escape, in degree
+    private float avoidStrength = 15f;
+
+    private float boundingRadius = 0.33f; // .33 for fish boids
+
+    private int obstacleLayerMask = 1 << 6;
 
     public static Boid Create(
         string prefabPath,
@@ -109,52 +120,6 @@ public class Boid : MonoBehaviour
         }
     }
 
-    public bool AvoidanceEnabled
-    {
-        get
-        {
-            return avoidanceEnabled;
-        }
-        set
-        {
-            avoidanceEnabled = value;
-        }
-    }
-
-    public float AvoidanceDist
-    {
-        get
-        {
-            return avoidanceDist;
-        }
-        set
-        {
-            if (value < 0)
-            {
-                avoidanceDist = 0;
-                return;
-            }
-            avoidanceDist = value;
-        }
-    }
-
-    public float AvoidanceStrength
-    {
-        get
-        {
-            return avoidanceStrength;
-        }
-        set
-        {
-            if (value < 0)
-            {
-                avoidanceStrength = 0;
-                return;
-            }
-            avoidanceStrength = value;
-        }
-    }
-
     public bool AlignmentEnabled
     {
         get
@@ -198,6 +163,28 @@ public class Boid : MonoBehaviour
                 return;
             }
             alignmentStrength = value;
+        }
+    }
+
+    public float AlignmentAngle
+    {
+        get
+        {
+            return alignmentAngle;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                alignmentAngle = 0;
+                return;
+            }
+            if (value > 180)
+            {
+                alignmentAngle = 180;
+                return;
+            }
+            alignmentAngle = value;
         }
     }
 
@@ -247,6 +234,28 @@ public class Boid : MonoBehaviour
         }
     }
 
+    public float CohesionAngle
+    {
+        get
+        {
+            return cohesionAngle;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                cohesionAngle = 0;
+                return;
+            }
+            if (value > 180)
+            {
+                cohesionAngle = 180;
+                return;
+            }
+            cohesionAngle = value;
+        }
+    }
+
     public bool SeparationEnabled
     {
         get
@@ -293,6 +302,28 @@ public class Boid : MonoBehaviour
         }
     }
 
+    public float SeparationAngle
+    {
+        get
+        {
+            return separationAngle;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                separationAngle = 0;
+                return;
+            }
+            if (value > 180)
+            {
+                separationAngle = 180;
+                return;
+            }
+            separationAngle = value;
+        }
+    }
+
     public float PerceptionDist
     {
         get
@@ -301,6 +332,158 @@ public class Boid : MonoBehaviour
                 Mathf.Max(alignmentDist, cohesionDist),
                 separationDist
                 );
+        }
+    }
+
+    public Vector3 Goal
+    {
+        get
+        {
+            return goal;
+        }
+        set
+        {
+            goal = value;
+        }
+    }
+
+    public bool GoalSeekingEnabled
+    {
+        get
+        {
+            return goalSeekingEnabled;
+        }
+        set
+        {
+            goalSeekingEnabled = value;
+        }
+    }
+
+    public float GoalSeekingStrength
+    {
+        get
+        {
+            return goalSeekingStrength;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                goalSeekingStrength = 0;
+                return;
+            }
+            goalSeekingStrength = value;
+        }
+    }
+
+    public bool BankingEnabled
+    {
+        get
+        {
+            return bankingEnabled;
+        }
+        set
+        {
+            bankingEnabled = value;
+        }
+    }
+
+    public float LiftStrength
+    {
+        get
+        {
+            return liftStregth;
+        }
+        set
+        {
+            liftStregth = value;
+        }
+    }
+
+    public bool AvoidEnabled
+    {
+        get
+        {
+            return avoidEnabled;
+        }
+        set
+        {
+            avoidEnabled = value;
+        }
+    }
+
+    public float AvoidDist
+    {
+        get
+        {
+            return avoidDist;
+        }
+        set
+        {
+            avoidDist = value;
+        }
+    }
+
+    public float AvoidAngle
+    {
+        get
+        {
+            return avoidAngle;
+        }
+        set
+        {
+            if (value < 0)
+            {
+                avoidAngle = 0;
+                return;
+            }
+            if (value > 180)
+            {
+                avoidAngle = 180;
+                return;
+            }
+            avoidAngle = value;
+        }
+    }
+
+    public float AvoidStrength
+    {
+        get
+        {
+            return avoidStrength;
+        }
+        set
+        {
+            avoidStrength = value;
+        }
+    }
+
+    public float BoundingRadius
+    {
+        get
+        {
+            return boundingRadius;
+        }
+        set
+        {
+            if (value <= 0)
+            {
+                boundingRadius = 0.01f;
+                return;
+            }
+            boundingRadius = value;
+        }
+    }
+
+    public int ObstacleLayerMask
+    {
+        get
+        {
+            return obstacleLayerMask;
+        }
+        set
+        {
+            obstacleLayerMask = value;
         }
     }
 
@@ -315,18 +498,42 @@ public class Boid : MonoBehaviour
 
     private void Steer(Vector3 steeringV, float forceCoef)
     {
-        Vector3 steeringD = steeringV; // steering direction
-        steeringD.Normalize();
+        Vector3 steeringD = Vector3.Normalize(steeringV); // steering direction
 
-        Vector3 acceleration = Vector3.ClampMagnitude(
-            steeringD * forceCoef, maxForce) / mass;
+        Vector3 steeringF = Vector3.ClampMagnitude(
+            steeringD * forceCoef, maxForce);
+
+        Vector3 acceleration = steeringF / mass;
 
         Vector3 deltaV = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringV.magnitude);
 
+        //Velocity = velocity + deltaV;
         velocity = Vector3.ClampMagnitude(velocity + deltaV, maxSpeed);
 
-        Move();
+        // set new position
+        transform.Translate(velocity * Time.deltaTime, Space.World);
+        // set new orientation
+        if (velocity != Vector3.zero)
+        {
+            if (bankingEnabled)
+            {
+                // velocity is new forward
+                Vector3 oldUp = transform.up;
+                Vector3 newRight = Vector3.Normalize(
+                    Vector3.Cross(velocity, oldUp));
+                Vector3 newUp = Vector3.Normalize(
+                    Vector3.Cross(newRight, velocity));
+                newUp = Vector3.Normalize(
+                    newRight * Vector3.Dot(steeringF, newRight) +
+                    newUp * (mass * liftStregth));
+                transform.rotation = Quaternion.LookRotation(velocity, newUp);
+                return;
+            }
+
+            // look at the new forward direction
+            transform.rotation = Quaternion.LookRotation(velocity);
+        }
     }
 
     /*
@@ -441,6 +648,7 @@ public class Boid : MonoBehaviour
             Vector3 desiredVelocity = avgPosition - transform.position;
             desiredVelocity.Normalize();
             desiredVelocity *= maxSpeed;
+            // steering = desired_velocity - velocity
             steering = desiredVelocity - velocity;
         }
 
@@ -492,6 +700,141 @@ public class Boid : MonoBehaviour
         Steer(Separate(flockmates), separationStrength);
     }
 
+    public Vector3 SeekGoal()
+    {
+        return (goal - transform.position) * maxSpeed - velocity;
+    }
+
+    private void SteerToSeekGoal()
+    {
+        Steer(SeekGoal(), goalSeekingStrength);
+    }
+
+    private Vector3 AvoidAwayFromSurface()
+    {
+        Vector3 steering = Vector3.zero;
+
+        Ray ray = new Ray(transform.position, transform.forward);
+        RaycastHit hit;
+
+        if (Physics.SphereCast(
+            transform.position,
+            boundingRadius,
+            transform.forward,
+            out hit,
+            avoidDist,
+            obstacleLayerMask))
+        {
+            Debug.DrawLine(ray.origin, hit.point, Color.red);
+            float dist = Vector3.Distance(transform.position, hit.point);
+            if (dist == 0)
+            {
+                return hit.normal * maxSpeed -velocity;
+            }
+            steering = hit.normal * maxSpeed * avoidDist/dist - velocity;
+        }
+        return steering;
+    }
+
+    private Vector3 AvoidSpecularReflection()
+    {
+        Vector3 steering = Vector3.zero;
+        RaycastHit hit;
+        if (Physics.SphereCast(
+            transform.position,
+            boundingRadius,
+            transform.forward,
+            out hit,
+            avoidDist,
+            obstacleLayerMask))
+        {
+            Vector3 reflection = Vector3.Normalize(
+                transform.forward +
+                hit.normal * Mathf.Abs(
+                    Vector3.Dot(transform.forward, hit.normal) * 2));
+            steering = reflection * maxSpeed - velocity;
+        }
+            return steering;
+    }
+
+    private Vector3 AvoidAlongRaycast()
+    {
+        Ray ray = new Ray(transform.position, transform.forward);
+        RaycastHit hit;
+        Vector3 steering = Vector3.zero;
+
+        if (isGoingToCollide())
+        {
+            // find a direction to avoid obstacle
+            for (float i = 5; i <= avoidAngle; i += 5)
+            {
+                Vector3 newBaseDir = Quaternion.AngleAxis(
+                                        i,
+                                        transform.up) *
+                                     transform.forward;
+                // rotate this base direction around forward axis for 360 degrees
+                for (int j = 0; j < 360; j += 5)
+                {
+                    Vector3 newDir = Quaternion.AngleAxis(
+                                        j,
+                                        transform.forward) *
+                                     newBaseDir;
+                    ray.direction = newDir;
+                    if (Physics.SphereCast(
+                        transform.position,
+                        boundingRadius,
+                        newDir,
+                        out hit,
+                        avoidDist,
+                        obstacleLayerMask))
+                    {
+                        // still hit
+                        Debug.DrawLine(ray.origin, hit.point, Color.red);
+                    }
+                    else
+                    {
+                        Debug.DrawLine(
+                            ray.origin,
+                            ray.origin + ray.direction * avoidDist,
+                            Color.green);
+                        steering = ray.direction * maxSpeed - velocity;
+                        return steering;
+                    }
+                }
+            }
+            // can not find a way, try to go back
+            // better not to reach here
+            return -transform.forward * maxSpeed - velocity;
+        }
+        // safe
+        Debug.DrawLine(
+            ray.origin,
+            ray.origin + ray.direction * avoidDist,
+            Color.green);
+        return steering;
+    }
+
+    private Vector3 AvoidObstacle()
+    {
+        return AvoidSpecularReflection();
+    }
+
+    public void SteerToAvoidObstacle()
+    {
+        Vector3 steeringV = AvoidObstacle(); // steering velocity
+        // if there is no steering, i.e. boid's direction remains the same
+        // try to accelerate until it reaches max speed
+        steeringV = steeringV == Vector3.zero ?
+            transform.forward * maxSpeed : steeringV;
+        Vector3 steeringD = steeringV; // steering direction
+        steeringD.Normalize();
+        Vector3 acceleration = avoidStrength * steeringD / mass;
+        Vector3 deltaV = Vector3.ClampMagnitude(
+            acceleration * Time.deltaTime, steeringV.magnitude);
+        velocity = Vector3.ClampMagnitude(velocity + deltaV, maxSpeed);
+        Move();
+    }
+
     // Start is called before the first frame update
     void Start()
     {
@@ -517,21 +860,27 @@ public class Boid : MonoBehaviour
         Vector3 steeringVelocity = Vector3.zero;
         // steering force of alignemnt, cohesion and separation
         Vector3 steeringForce = Vector3.zero;
-        // avoidance vector not encapsulated due to needing in calculating delta velocity
-        Vector3 avoidanceV = Vector3.zero;
+        bool avoidingObstacle = false;
 
-        // desired avoidance steering velocity/direction
-        if (avoidanceEnabled)
+        if (avoidEnabled)
         {
-            avoidanceV = AvoidObstacle();
-            Vector3 avoidanceD = avoidanceV;
-            avoidanceD.Normalize();
-            steeringVelocity += avoidanceV;
-            steeringForce += avoidanceStrength * avoidanceD;
+            Vector3 avoidV = AvoidObstacle();
+            Vector3 avoidD = Vector3.Normalize(avoidV);
+            if (avoidV != Vector3.zero)
+            {
+                avoidingObstacle = true;
+                steeringVelocity += avoidV;
+                steeringForce += avoidStrength * avoidD;
+            }
+        }
+
+        if (avoidingObstacle)
+        {
+            goto Move;
         }
 
         // desired separation steering velocity/direction
-        if (steeringForce.magnitude < maxForce && separationEnabled)
+        if (separationEnabled)
         {
             Vector3 separationV = Separate(flock);
             Vector3 separationD = separationV;
@@ -541,7 +890,7 @@ public class Boid : MonoBehaviour
         }
 
         // desired alignment steering velocity/direction
-        if (steeringForce.magnitude < maxForce && alignmentEnabled)
+        if (alignmentEnabled)
         {
             Vector3 alignmentV = Align(flock);
             Vector3 alignmentD = alignmentV;
@@ -549,9 +898,9 @@ public class Boid : MonoBehaviour
             steeringVelocity += alignmentV;
             steeringForce += alignmentStrength * alignmentD;
         }
-        
+
         // desired cohesion steering velocity/direction
-        if (steeringForce.magnitude < maxForce && cohesionEnabled)
+        if (cohesionEnabled)
         {
             Vector3 cohesionV = Cohere(flock);
             Vector3 cohesionD = cohesionV;
@@ -559,8 +908,17 @@ public class Boid : MonoBehaviour
             steeringVelocity += cohesionV;
             steeringForce += cohesionStrength * cohesionD;
         }
-        
 
+        if (goalSeekingEnabled)
+        {
+            Vector3 goalSeekingV = SeekGoal();
+            Vector3 goalSeekingD = goalSeekingV;
+            goalSeekingD.Normalize();
+            steeringVelocity += goalSeekingV;
+            steeringForce += goalSeekingStrength * goalSeekingD;
+        }
+
+    Move:
         // steering_force = truncate (steering_direction, max_force)
         steeringForce = Vector3.ClampMagnitude(steeringForce, maxForce);
         steeringVelocity = Vector3.ClampMagnitude(steeringVelocity, maxSpeed);
@@ -574,54 +932,98 @@ public class Boid : MonoBehaviour
         // acceleration = steering_force / mass
         Vector3 acceleration = steeringForce / mass;
         // avoid overshooting
-        Vector3 deltaVelocity = Vector3.zero;
-
-        deltaVelocity = Vector3.ClampMagnitude(
+        Vector3 deltaVelocity = Vector3.ClampMagnitude(
             acceleration * Time.deltaTime, steeringVelocity.magnitude);
-
+        // velocity = truncate(velocity + acceleration, max_speed)
         velocity = Vector3.ClampMagnitude(velocity + deltaVelocity, maxSpeed);
 
-        Move();
-    }
-
-    public Vector3 AvoidObstacle()
-    {
-        Ray ray = new Ray(transform.position, transform.forward);
-        RaycastHit hit;
-        Vector3 steering = Vector3.zero;
-        if (Physics.Raycast(ray, out hit, avoidanceDist))
+        // set new position
+        transform.Translate(velocity * Time.deltaTime, Space.World);
+        // set new orientation
+        if (velocity != Vector3.zero)
         {
-            if (hit.collider.gameObject.layer == 3) // only consider static object collisions, ignore other boids
+            if (bankingEnabled)
             {
-                Debug.Log(hit.collider.name);
-                if (hit.normal == -transform.forward)
-                {
-                    steering = transform.right * maxSpeed;
-                }
-                else
-                {
-                    // normalized vector reflecting from hit surface
-                    steering = Vector3.Normalize(hit.normal); // using normal surface vector to change acceleration vector
-
-                    // reflected vector implementation
-                    //Vector3 normalizedHitNormal = Vector3.Normalize(hit.normal);
-                    // reflected ray vector from the boid vector around the normal surface vector
-                    //steering = velocity - 2 * Vector3.Dot(velocity, normalizedHitNormal) * normalizedHitNormal;
-                    //steering = Vector3.Normalize(steering) * maxSpeed;
-                }
+                // velocity is new forward
+                Vector3 oldUp = transform.up;
+                Vector3 newRight = Vector3.Normalize(
+                    Vector3.Cross(velocity, oldUp));
+                Vector3 newUp = Vector3.Normalize(
+                    Vector3.Cross(newRight, velocity));
+                newUp = Vector3.Normalize(
+                    newRight * Vector3.Dot(steeringForce, newRight) +
+                    newUp * (mass * liftStregth));
+                transform.rotation = Quaternion.LookRotation(velocity, newUp);
+                return;
             }
+
+            // look at the new forward direction
+            transform.rotation = Quaternion.LookRotation(velocity);
         }
-        return steering;
     }
 
-    /*
-     * Returns the desired steering velocity
-     */
-    private Vector3 SteerAway(GameObject target)
+    //public void OnDrawGizmos()
+    //{
+    //    //Gizmos.color = Color.cyan;
+    //    //Gizmos.DrawSphere(transform.position, boundingRadius);
+    //    // 2D
+    //    //Gizmos.color = Color.green;
+    //    //for (int i = 0; i <= numAvoidRays; i++)
+    //    //{
+    //    //    Vector3[] v = new Vector3[] { transform.up, transform.right };
+    //    //    for (int j = 0; j < v.Length; j++)
+    //    //    {
+    //    //        for (int k = -1; k <= 1; k++)
+    //    //        {
+    //    //            if (k == 0) { continue; }
+    //    //            // rotate
+    //    //            Gizmos.DrawRay(
+    //    //                transform.position,
+    //    //                Quaternion.AngleAxis(
+    //    //                    i * k * avoidAngle / (float)numAvoidRays,
+    //    //                    v[j]) *
+    //    //                transform.forward);
+    //    //        }
+    //    //    }
+    //    //}
+
+    //    // 3D
+    //    Gizmos.color = Color.blue;
+    //    for (int i = 5; i <= avoidAngle; i+=5)
+    //    {
+    //        Vector3 newBaseDir = Quaternion.AngleAxis(
+    //                                i,
+    //                                transform.up) *
+    //                             transform.forward;
+    //        Gizmos.color = Color.Lerp(Color.blue, Color.magenta, i / avoidAngle);
+    //        // rotate this base direction around forward axis for 360 degrees
+    //        for (int j = 0; j < 360; j+=5)
+    //        {
+    //            Vector3 newDir = Quaternion.AngleAxis(
+    //                                j,
+    //                                transform.forward) *
+    //                             newBaseDir;
+    //            Gizmos.DrawRay(
+    //                transform.position,
+    //                newDir);
+    //        }
+    //    }
+    //}
+
+    private bool isGoingToCollide()
     {
-        Vector3 desiredD = target.transform.position - transform.position;
-        desiredD.Normalize();
-        Vector3 desiredV = desiredD * maxSpeed;
-        return desiredV - velocity;
+        RaycastHit hit;
+        if (Physics.SphereCast(
+            transform.position,
+            boundingRadius,
+            transform.forward,
+            out hit,
+            avoidDist,
+            obstacleLayerMask))
+        {
+            return true;
+        }
+        
+        return false;
     }
 }
