@@ -816,7 +816,7 @@ public class Boid : MonoBehaviour
 
     private Vector3 AvoidObstacle()
     {
-        return AvoidAlongRaycast();
+        return AvoidSpecularReflection();
     }
 
     public void SteerToAvoidObstacle()
