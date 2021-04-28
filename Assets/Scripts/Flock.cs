@@ -23,7 +23,7 @@ public class Flock : MonoBehaviour
                     Random.Range(spawnLowerBound, spawnUpperBound)
                 );
             Boid b = Boid.Create(prefab, position, Random.rotation);
-            b.AvoidanceEnabled = true;
+            b.AvoidEnabled = true;
             b.AlignmentEnabled = true;
             b.CohesionEnabled = true;
             b.SeparationEnabled = true;
